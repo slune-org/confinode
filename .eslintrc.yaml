@@ -1,0 +1,113 @@
+---
+env:
+  node: true
+  es6: true
+parser: '@typescript-eslint/parser'
+parserOptions:
+  project: tsconfig.json
+plugins:
+  - prettier
+settings:
+  jsdoc:
+    mode: typescript
+extends:
+  - eslint:recommended
+  - plugin:node/recommended
+  - plugin:@typescript-eslint/eslint-recommended
+  - plugin:@typescript-eslint/recommended
+  - plugin:import/warnings
+  - plugin:import/typescript
+  - plugin:jsdoc/recommended
+  - prettier
+  - prettier/@typescript-eslint
+rules:
+  '@typescript-eslint/array-type':
+    - error
+    - default: array-simple
+      readonly: generic
+  '@typescript-eslint/consistent-type-definitions': error
+  curly: error
+  dot-notation: error
+  eqeqeq: error
+  '@typescript-eslint/explicit-function-return-type': 'off'
+  '@typescript-eslint/explicit-member-accessibility':
+    - error
+    - accessibility: explicit
+  id-blacklist:
+    - error
+    - any
+    - Number
+    - number
+    - String
+    - string
+    - Boolean
+    - boolean
+    - Undefined
+  id-match: error
+  '@typescript-eslint/interface-name-prefix': 'off'
+  max-classes-per-file: 'off'
+  jsdoc/newline-after-description: error
+  no-bitwise: 'off'
+  no-caller: error
+  no-console: warn
+  no-eval: error
+  '@typescript-eslint/no-explicit-any': 'off'
+  no-extra-bind: error
+  import/no-extraneous-dependencies:
+    - error
+    - optionalDependencies: false
+      devDependencies:
+        - '**/*.spec.ts'
+  import/no-internal-modules: error
+  no-invalid-this: 'off'
+  node/no-missing-import: 'off'
+  no-new-wrappers: error
+  '@typescript-eslint/no-non-null-assertion': 'off'
+  '@typescript-eslint/no-parameter-properties': 'off'
+  no-restricted-syntax:
+    - error
+    - SequenceExpression
+  no-return-await: error
+  import/no-self-import: error
+  no-shadow:
+    - error
+    - hoist: all
+  no-template-curly-in-string: error
+  no-throw-literal: error
+  jsdoc/no-types: error
+  no-undef-init: error
+  node/no-unsupported-features/es-syntax: 'off'
+  no-unused-expressions:
+    - error
+    - allowShortCircuit: true
+  '@typescript-eslint/no-unused-vars':
+    - error
+    - argsIgnorePattern: '^_'
+      ignoreRestSiblings: true
+  '@typescript-eslint/no-use-before-define': 'off'
+  object-shorthand: error
+  one-var:
+    - error
+    - never
+  prefer-arrow-callback:
+    - error
+    - allowUnboundThis: false
+  '@typescript-eslint/prefer-for-of': error
+  '@typescript-eslint/prefer-function-type': error
+  prefer-object-spread: error
+  prettier/prettier: warn
+  radix: error
+  require-atomic-updates: 'off'
+  jsdoc/require-description-complete-sentence:
+    - warn
+    - abbreviations:
+        - i.e.
+        - e.g.
+  jsdoc/require-hyphen-before-param-description: warn
+  jsdoc/require-jsdoc: 'off'
+  jsdoc/require-param-type: 'off'
+  jsdoc/require-returns-type: 'off'
+  spaced-comment: error
+  valid-typeof: 'off'
+  space-in-parens: error
+  '@typescript-eslint/unified-signatures': error

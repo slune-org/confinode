@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "rootDir": "src",
+    "outDir": "lib",
+    "declaration": true,
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "plugins": [
+      {
+        "transform": "ts-transform-auto-require",
+        "autoRequires": [
+          {
+            "source": {
+              "glob": "loaders/*.ts",
+              "ignore": ["**/index.ts", "**/Loader.ts", "**/LoaderManager.ts", "**/*.spec.ts"]
+            },
+            "target": {
+              "file": "loaders/LoaderManager.ts",
+              "variable": "loaderDescriptions"
+            }
+          },
+          {
+            "source": {
+              "glob": "ConfigDescription/*/*Description.ts",
+              "ignore": ["ConfigDescription/ConfigDescription/**"]
+            },
+            "target": {
+              "file": "ConfigDescription/consistency.spec.ts",
+              "variable": "allDescriptions"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "include": ["src/**/*.ts"]
+}

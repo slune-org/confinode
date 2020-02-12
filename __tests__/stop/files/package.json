@@ -1,0 +1,10 @@
+{
+  "titanic": {
+    "found": true,
+    "where": "package.json"
+  },
+  "starwars": {
+    "found": true,
+    "where": "package.json"
+  }
+}

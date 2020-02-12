@@ -1,0 +1,12 @@
+---
+extends: '@istanbuljs/nyc-config-typescript'
+include:
+  - 'src/**'
+exclude:
+  - '**/*.spec.ts'
+  - '**/setupTest.ts'
+  - 'src/loaders/*'
+reporter:
+  - lcov
+  - text
+all: true
