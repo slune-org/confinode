@@ -5,7 +5,7 @@ Ce paquet fourni une bibliothèque qui se veut standard et universelle de gestio
 - synchrone ou asynchrone… ou les deux ;
 - cache des accès au système de fichiers ;
 - recherche du fichier de configuration adéquat ;
-- chargement du fichier de configuration à partir de son nom ~~ou d'un nom de module~~ (:construction: TODO: WIP) ;
+- chargement du fichier de configuration à partir de son nom ou d'un nom de module ;
 - support d'un grand nombre de types de fichiers (support direct de _JavaScript_, _JSON_, _YAML_, support d'autres types si les modules adéquats peuvent être chargés) ;
 - ~~gestion d'indirections (si la configuration est une chaine de caractère, il s'agit de l'emplacement réel du fichier à charger)~~ (:construction: TODO: WIP) ;
 - ~~gestion d'héritage (une configuration peut en étendre une autre)~~ (:construction: TODO: WIP) ;
