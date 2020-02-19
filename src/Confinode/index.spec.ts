@@ -368,13 +368,37 @@ describe('Confinode', function() {
     const confinode = new Confinode('titanic', configurationDescription, {
       logger: catchLogs,
     })
+    const anyConfinode = new Confinode('unused', anyItem(), {
+      logger: catchLogs,
+    })
 
     beforeEach('Clear stored logs', function() {
       storedLogs = []
     })
 
-    it('should load given configuration file', async function() {
+    it('should load given absolute configuration file', async function() {
       await expect(confinode.load(join(moduleDir, '.starwarsrc.yml'))).to.eventually.exist
+    })
+
+    it('should load given relative configuration file', async function() {
+      await expect(anyConfinode.load('./package.json')).to.eventually.exist
+      const loadedFile = storedLogs.find(message => message.messageId === 'loadingFile')
+      expect(loadedFile).to.exist
+      expect(loadedFile?.toString()).to.match(/\/package.json$/)
+    })
+
+    it('should load module main file', async function() {
+      await expect(anyConfinode.load('mocha')).to.eventually.exist
+      const loadedFile = storedLogs.find(message => message.messageId === 'loadingFile')
+      expect(loadedFile).to.exist
+      expect(loadedFile?.toString()).to.match(/\/node_modules\/([^/]+\/)*mocha\/index.js$/)
+    })
+
+    it('should load internal module file', async function() {
+      await expect(anyConfinode.load('mocha/lib/mocha.js')).to.eventually.exist
+      const loadedFile = storedLogs.find(message => message.messageId === 'loadingFile')
+      expect(loadedFile).to.exist
+      expect(loadedFile?.toString()).to.match(/\/node_modules\/([^/]+\/)*mocha\/lib\/mocha.js$/)
     })
 
     it('should return undefined if file does not exist', async function() {

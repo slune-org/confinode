@@ -150,7 +150,7 @@ If the `Confinode` object was parameterized in synchronous mode, this method dir
 
 ## Load
 
-Loading a configuration is done using the `load(name)` method. The `name` parameter represents the file to load. ~~The real file place will be search with the `require.resolve()` function~~ (:construction: TODO: WIP). It then can be a relative or absolute file name, ~~or a reference to a module~~ (:construction: TODO: WIP).
+Loading a configuration is done using the `load(name)` method. The `name` parameter represents the file to load. The real file place will be searched using the `require.resolve()` function. It can then be a relative or absolute file name, or a reference to a module .
 
 By default, this method is asynchronous and returns a promise. In this case, there is a `load.sync(name)` method doing the same but in synchronous mode.
 

@@ -150,7 +150,7 @@ Si l'objet `Confinode` a été configuré en mode synchrone, cette méthode renv
 
 ## Chargement
 
-Le chargement d'une configuration se fait par la méthode `load(name)`. Le paramètre `name` désigne le fichier à charger. ~~L'emplacement réel du fichier sera cherché avec la fonction `require.resolve()`~~ (:construction: TODO: WIP). Il peut donc s'agir d'un nom de fichier relatif, d'un nom de fichier absolu, ~~ou d'une référence à un module~~ (:construction: TODO: WIP).
+Le chargement d'une configuration se fait par la méthode `load(name)`. Le paramètre `name` désigne le fichier à charger. L'emplacement réel du fichier sera cherché avec la fonction `require.resolve()`. Il peut donc s'agir d'un nom de fichier relatif ou absolu, ou d'une référence à un module.
 
 Par défaut, cette méthode fonctionne en mode asynchrone et renvoie une promesse. Dans ce cas, il existe la méthode `load.sync(name)` qui aura la même fonctionnalité mais en mode synchrone.
 

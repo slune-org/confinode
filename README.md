@@ -11,7 +11,7 @@ This package provides a library which purpose is to be a standard and universal 
 - synchronous or asynchronous… or both;
 - file system access cache;
 - appropriate configuration file searching;
-- configuration file loading, based on its name ~~or on a module name~~ (:construction: TODO: WIP);
+- configuration file loading, based on its name or on a module name;
 - a lot of file type supported (out-of-the-box support for _JavaScript_, _JSON_, _YAML_, support for other types if appropriate modules can be loaded);
 - ~~indirection management (if configuration is a string, it is the real path to the file to load)~~ (:construction: TODO: WIP);
 - ~~heritage management (a configuration can extend another one)~~ (:construction: TODO: WIP);

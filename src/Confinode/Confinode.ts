@@ -288,11 +288,20 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    *
    * @param name - The name of the configuration file. The name may be an absolute file path, a relative
    * file path, or a module name and an optional file path.
+   * @param folder - The folder to resolve name from, defaults to current directory.
    * @returns The configuration if loaded, undefined otherwise.
    */
-  private *loadConfig(name: string): Generator<Request, ConfinodeResult<T> | undefined, any> {
-    // TODO get the real file name (require.resolve)
-    const fileName: string | undefined = name
+  private *loadConfig(
+    name: string,
+    folder: string = process.cwd()
+  ): Generator<Request, ConfinodeResult<T> | undefined, any> {
+    // Search for the real file name
+    let fileName: string | undefined
+    try {
+      fileName = require.resolve(name, { paths: [folder] })
+    } catch {
+      fileName = undefined
+    }
 
     // Load the content
     try {
