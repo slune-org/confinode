@@ -9,7 +9,7 @@
     "lib/**",
     "!lib/**/*.spec.*",
     "!lib/**/*.map",
-    "!lib/setupTest.*"
+    "!lib/tools/**"
   ],
   "scripts": {
     "prepublishOnly": "npm run all",
@@ -18,7 +18,8 @@
     "test:lint": "eslint --config .eslintrc.full.yaml 'src/**/*.ts'",
     "test:dep": "depcheck",
     "test:unit": "cross-env TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript nyc mocha 'src/**/*.spec.ts'",
-    "build": "npm run build:main",
+    "build": "npm run build:main && npm run build:extensions",
+    "build:extensions": "cross-env TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript ts-node src/tools/managedExtensions.ts doc/extensions.txt",
     "build:main": "ttsc",
     "clean": "rimraf lib"
   },

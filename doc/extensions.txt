@@ -1,0 +1,18 @@
+.js:
+      * javascript
+.json:
+      * json
+.ts:
+      * @babel-register-ts (module “@babel/register”)
+      * ts-node (module “ts-node/register”)
+      * typescript-node (module “typescript-node/register”)
+      * typescript-register (module “typescript-register”)
+      * typescript-require (module “typescript-require”)
+.tsx:
+      * @babel-register-ts (module “@babel/register”)
+      * ts-node (module “ts-node/register”)
+      * typescript-node (module “typescript-node/register”)
+.yaml:
+      * yaml
+.yml:
+      * yaml
