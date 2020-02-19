@@ -70,7 +70,7 @@ describe('Confinode', function() {
         fileName: join(moduleDir, 'package.json'),
         files_: {
           extends: [],
-          fileName: '/home/stephane/Developpements/confinode/__tests__/stop/files/package.json',
+          fileName: join(moduleDir, 'package.json'),
         },
       })
     })
