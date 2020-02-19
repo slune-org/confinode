@@ -1,10 +1,10 @@
-import Loader, { LoaderType } from './Loader'
+import Loader, { LoaderType } from '../Loader'
 
 /**
- * Loader for entry content of a JSON files.
+ * Loader implementation.
  */
-class JsonEntryLoader implements Loader {
-  public constructor(private readonly entry: string) {}
+class LoaderImplementation implements Loader {
+  public constructor(_: any, private readonly entry: string) {}
 
   public load(filename: string) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -18,9 +18,9 @@ class JsonEntryLoader implements Loader {
 }
 
 /**
- * The loader description.
+ * Loader description.
  */
 const description: LoaderType<[string]> = {
-  Loader: JsonEntryLoader,
+  Loader: LoaderImplementation,
 }
 export default description

@@ -1,5 +1,3 @@
-import { relative, sep } from 'path'
-
 /**
  * The loader class. A loader is able to load a file of a given type.
  */
@@ -26,7 +24,7 @@ export default interface Loader {
  * manager, but may be directly provided for a given file (e.g. the `package.json` entry loader).
  */
 export interface LoaderType<T extends any[]> {
-  Loader: new (..._: T) => Loader
+  Loader: new (required: any, ..._: T) => Loader
 }
 
 /**
@@ -46,49 +44,13 @@ export interface LoaderDescription extends LoaderType<[]> {
   /**
    * The loader type (constructor).
    */
-  Loader: new () => Loader
+  Loader: new (required: any) => Loader
 }
 
 /**
- * The babel files regular expression. Taken from the Gulp “interpret” project:
- * https://github.com/gulpjs/interpret.
+ * A class for loaders based on register/require.
  */
-const endsInBabelJs = /\.babel\.[jt]s(x)$/
-
-/**
- * Check if file is a babel or node module. Taken from the Gulp “interpret” project:
- * https://github.com/gulpjs/interpret.
- *
- * @param file - The file to test.
- * @returns False if file is babel or node module and should not be ignored.
- */
-export function ignoreNonBabelAndNodeModules(file: string) {
-  return (
-    !endsInBabelJs.test(file) &&
-    relative(process.cwd(), file)
-      .split(sep)
-      .indexOf('node_modules') >= 0
-  )
-}
-
-/**
- * An abstract class for loaders based on register/require.
- */
-export abstract class RequiringLoader implements Loader {
-  public constructor(
-    description: undefined | string | { moduleName: string; register: (required: any) => void }
-  ) {
-    if (description) {
-      if (typeof description === 'string') {
-        require(description)
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const required = require(description.moduleName)
-        description.register(required)
-      }
-    }
-  }
-
+export class RequiringLoader implements Loader {
   public load(filename: string) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     let result = require(filename)

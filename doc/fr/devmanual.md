@@ -104,6 +104,12 @@ L'option `searchStop` est une chaine de caractères indiquant le dossier au-del�
 
 Lorsque _confinode_ recherche un fichier de configuration, si aucun fichier correspondant n'est trouvé dans le dossier en cours, il est recherché dans le dossier père, et ainsi de suite jusqu'à arriver soit au dossier indiqué par `searchStop`, soit à la racine du système de fichier.
 
+## Option « modulePaths »
+
+Les modules des chargeurs seront toujours recherchés par rapport au dossier courant et par rapport aux fichiers de configurations en cours de lecture. Dans le cas où votre application importe certains modules, vous voudrez peut-être ajouter son dossier. L'option `modulePaths` permet de donner une liste de dossier supplémentaires qui seront fournis à `require.resolve()` pour rechercher les modules.
+
+Notez que le dossier courant est systématiquement ajouté et qu'il n'est donc pas utile de le préciser ici.
+
 ## Option « logger »
 
 La bibliothèque émet régulièrement des messages de différents niveaux : _erreur_, _avertissement_, _information_ et _trace_. Par défaut, les messages de niveau _erreur_ sont affichés sur la sortie des erreurs et les messages de niveau _avertissement_ sur la sortie standard. Les autres sont ignorés.

@@ -1,4 +1,4 @@
-import { Loader } from '../loaders'
+import Loader from '../Loader'
 
 /**
  * The description of a configuration file, i.e. either a file basename or a full file name with loader.

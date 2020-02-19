@@ -2,9 +2,12 @@ import { readFile, readFileSync } from 'fs'
 import { promisify } from 'util'
 import { parse } from 'yaml'
 
-import Loader, { LoaderDescription } from './Loader'
+import Loader, { LoaderDescription } from '../Loader'
 
-class YamlLoader implements Loader {
+/**
+ * Loader implementation.
+ */
+class LoaderImplementation implements Loader {
   public load(filename: string) {
     return parse(readFileSync(filename, { encoding: 'utf8' }))
   }
@@ -16,10 +19,10 @@ class YamlLoader implements Loader {
 }
 
 /**
- * The loader description.
+ * Loader description.
  */
 const description: LoaderDescription = {
   filetypes: ['yml', 'yaml'],
-  Loader: YamlLoader,
+  Loader: LoaderImplementation,
 }
 export default description

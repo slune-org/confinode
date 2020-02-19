@@ -18,6 +18,11 @@ interface ConfinodeOptionsWithoutMode {
   searchStop: string
 
   /**
+   * Extra paths to search for loader modules.
+   */
+  modulePaths: string[]
+
+  /**
    * The logger for non error messages. Default logger will simply display warnings to the console.
    */
   logger: (message: Message<any>) => void
@@ -59,6 +64,7 @@ export function filesAreFilters(
 export const defaultConfig: Partial<ConfinodeOptionsWithoutMode> = {
   cache: true,
   searchStop: homedir(),
+  modulePaths: [],
   logger: defaultLogger,
 }
 

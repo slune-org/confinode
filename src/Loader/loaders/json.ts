@@ -1,9 +1,9 @@
-import Loader, { LoaderDescription } from './Loader'
+import Loader, { LoaderDescription } from '../Loader'
 
 /**
- * Loader for JSON files.
+ * Loader implementation.
  */
-class JsonLoader implements Loader {
+class LoaderImplementation implements Loader {
   public load(filename: string) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require(filename)
@@ -11,10 +11,10 @@ class JsonLoader implements Loader {
 }
 
 /**
- * The loader description.
+ * Loader description.
  */
 const description: LoaderDescription = {
   filetypes: 'json',
-  Loader: JsonLoader,
+  Loader: LoaderImplementation,
 }
 export default description

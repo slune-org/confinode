@@ -25,7 +25,7 @@ Si vous ne fournissez pas de nom de fichier de configuration, l'application va r
 - dans le fichier `.starwarsrc` au format `YAML` ou `JSON` ;
 - dans le fichier `.starwarsrc` avec l'une des extensions gérées ;
 - dans le fichier `starwars.config` avec l'une des extensions gérées ;
-- dans fichier `.starwars/starwars.config` avec l'une des extensions gérées.
+- dans le fichier `.starwars/starwars.config` avec l'une des extensions gérées.
 
 Notez que si plusieurs fichiers de même priorité sont accessibles (avec des extensions différentes), l'application en sélectionnera un de manière arbitraire et affichera un avertissement.
 

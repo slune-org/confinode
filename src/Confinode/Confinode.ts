@@ -3,7 +3,7 @@ import { basename, dirname, join, resolve } from 'path'
 import ConfigDescription, { anyItem } from '../ConfigDescription'
 import ConfinodeError from '../ConfinodeError'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
-import { Loader, LoaderManager } from '../loaders'
+import Loader, { LoaderManager } from '../Loader'
 import { Level, Message, MessageId, MessageParameters } from '../messages'
 import { isExisting } from '../utils'
 import ConfinodeOptions, { ConfinodeParameters, defaultConfig, filesAreFilters } from './ConfinodeOptions'
@@ -69,6 +69,8 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     )
 
     // Prepare options
+    this.parameters.modulePaths = this.parameters.modulePaths.map(path => resolve(process.cwd(), path))
+    this.parameters.modulePaths.unshift(process.cwd())
     if (!options?.files || filesAreFilters(options.files)) {
       this.parameters.files = defaultFiles(name)
     }
@@ -240,7 +242,11 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       const loaders = fileNames
         .filter(fileName => fileName.startsWith(baseName))
         .map(fileName => {
-          const loader = this.loaderManager.getLoaderFor(fileName, fileName.slice(baseName.length))
+          const loader = this.loaderManager.getLoaderFor(
+            this.parameters.modulePaths,
+            fileName,
+            fileName.slice(baseName.length)
+          )
           return isExisting(loader)
             ? { fileName: join(folderName, fileName), loaderName: loader.name, loader: loader.loader }
             : undefined
@@ -337,7 +343,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
 
     // Search for the loader if not provided
-    const usedLoader = loader ?? this.loaderManager.getLoaderFor(basename(absoluteFile))
+    // TODO Add module paths
+    const usedLoader =
+      loader ?? this.loaderManager.getLoaderFor(this.parameters.modulePaths, basename(absoluteFile))
     if (!usedLoader) {
       throw new ConfinodeError('noLoaderFound', absoluteFile)
     }
@@ -352,7 +360,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       this.log(Level.Trace, 'emptyConfiguration')
     } else {
       // TODO Look for indirection
-      // TODO Look if extends for inheritage
+      // TODO Look if extends for heritage
 
       // Parse file
       result = this.description.parse(content, { keyName: '', fileName, final: true })
