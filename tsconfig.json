@@ -29,6 +29,16 @@
           },
           {
             "source": {
+              "glob": "loaders/*.ts",
+              "ignore": ["**/index.ts", "**/Loader.ts", "**/LoaderManager.ts", "**/*.spec.ts"]
+            },
+            "target": {
+              "file": "tools/managedExtensions.ts",
+              "variable": "loaderDescriptions"
+            }
+          },
+          {
+            "source": {
               "glob": "ConfigDescription/*/*Description.ts",
               "ignore": ["ConfigDescription/ConfigDescription/**"]
             },

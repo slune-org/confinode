@@ -4,7 +4,7 @@ include:
   - 'src/**'
 exclude:
   - '**/*.spec.ts'
-  - '**/setupTest.ts'
+  - 'src/tools/**'
   - 'src/loaders/*'
 reporter:
   - lcov

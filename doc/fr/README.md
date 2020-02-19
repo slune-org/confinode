@@ -7,7 +7,7 @@ Ce paquet fourni une bibliothèque qui se veut standard et universelle de gestio
 - recherche du fichier de configuration adéquat ;
 - chargement du fichier de configuration à partir de son nom ou d'un nom de module ;
 - support d'un grand nombre de types de fichiers (support direct de _JavaScript_, _JSON_, _YAML_, support d'autres types si les modules adéquats peuvent être chargés) ;
-- ~~gestion d'indirections (si la configuration est une chaine de caractère, il s'agit de l'emplacement réel du fichier à charger)~~ (:construction: TODO: WIP) ;
+- ~~gestion d'indirections (si la configuration est une chaine de caractères, il s'agit de l'emplacement réel du fichier à charger)~~ (:construction: TODO: WIP) ;
 - ~~gestion d'héritage (une configuration peut en étendre une autre)~~ (:construction: TODO: WIP) ;
 - analyse de la configuration et contrôle des erreurs ;
 - pour les utilisateurs de _TypeScript_, complètement typé, y compris pour la configuration elle-même.

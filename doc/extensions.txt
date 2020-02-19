@@ -1,0 +1,8 @@
+.js:
+      * javascript
+.json:
+      * json
+.yaml:
+      * yaml
+.yml:
+      * yaml
