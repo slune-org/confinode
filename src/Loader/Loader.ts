@@ -5,18 +5,18 @@ export default interface Loader {
   /**
    * Load the given file.
    *
-   * @param filename - The name of the file to load.
+   * @param fileName - The name of the file to load.
    * @returns The content or undefined if content not found.
    */
-  load(filename: string): any | undefined
+  load(fileName: string): any | undefined
 
   /**
    * Asynchronously load the given file. May not exist on all loaders.
    *
-   * @param filename - The name of the file to load.
+   * @param fileName - The name of the file to load.
    * @returns The content or undefined if content not found.
    */
-  asyncLoad?(filename: string): Promise<any | undefined>
+  asyncLoad?(fileName: string): Promise<any | undefined>
 }
 
 /**
@@ -51,9 +51,9 @@ export interface LoaderDescription extends LoaderType<[]> {
  * A class for loaders based on register/require.
  */
 export class RequiringLoader implements Loader {
-  public load(filename: string) {
+  public load(fileName: string) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    let result = require(filename)
+    let result = require(fileName)
     if (result && result.__esModule && result.default) {
       result = result.default
     }

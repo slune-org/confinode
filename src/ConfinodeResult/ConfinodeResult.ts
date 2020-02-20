@@ -1,7 +1,7 @@
 type ResultChildren = ConfinodeResult<any>[] | { [key: string]: ConfinodeResult<any> }
 
 export interface ResultFile {
-  fileName: string
+  name: string
   extends: ResultFile[]
 }
 
@@ -78,6 +78,7 @@ export default class ConfinodeResult<T> {
       // Create a new result based on existing one
       this.configuration = directOrResult.configuration
       this.fileName = directOrResult.fileName
+      directOrResult.children && (this.children = directOrResult.children)
       this.files_ = dataOrChildrenOrFiles as ResultFile
     } else if (directOrResult === false) {
       // Create the result based on children elements
@@ -95,6 +96,7 @@ export default class ConfinodeResult<T> {
    * @returns All the files used to read the configuration.
    */
   public get files(): ResultFile {
+    /* istanbul ignore if */
     if (!this.files_) {
       throw new Error('Result is not fully initialized')
     } else {

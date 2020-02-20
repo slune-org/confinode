@@ -1,0 +1,5 @@
+{
+  "extends": "./recursive.js",
+  "a": "a in recursive.json",
+  "d": "d in recursive.json"
+}

@@ -24,7 +24,7 @@ Pour utiliser _confinode_, il suffit de construire un objet `Confinode`, puis de
 Fournir une description n'est pas obligatoire. Cela peut permettre d'intégrer progressivement _confinode_. Toutefois, cela ne devrait être qu'une étape transitoire, car l'absence de configuration empêchera _confinode_ de :
 
 - vérifier la validité de la configuration fournie par l'utilisateur ;
-- ~~fusionner correctement une configuration héritée.~~ (:construction: TODO: WIP)
+- fusionner correctement une configuration héritée.
 
 Pour un utilisateur de _TypeScript_, la description de la configuration devrait commencer par la définition de son type. Par exemple :
 
@@ -175,7 +175,7 @@ Le résultat de la recherche ou du chargement est un objet `ConfinodeResult`. Ce
 Le type `ResultFile` contient lui-même deux propriétés :
 
 - `name` est le nom du fichier qui a été chargé ;
-- `extends` est un tableau de `ResultFile` ~~contenant les fichiers de configuration hérités~~ (:construction: TODO: WIP).
+- `extends` est un tableau de `ResultFile` contenant les fichiers de configuration hérités.
 
 # Développer des outils supplémentaires
 

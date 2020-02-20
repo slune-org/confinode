@@ -50,11 +50,11 @@ function defaultLogger(message: Message<any>) {
  * Type guard to check if file names are actually filters rather than real file descriptions.
  *
  * @param files - The variable to check.
- * @returns True if filenames is a filter array.
+ * @returns True if files are actually a filter array.
  */
 export function filesAreFilters(
   files: FileDescription[] | Array<(fileDescriptions: FileDescription[]) => FileDescription[]>
-): files is Array<(filenames: FileDescription[]) => FileDescription[]> {
+): files is Array<(fileDescriptions: FileDescription[]) => FileDescription[]> {
   return files.length === 0 || typeof files[0] === 'function'
 }
 

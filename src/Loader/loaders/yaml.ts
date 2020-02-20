@@ -8,12 +8,12 @@ import Loader, { LoaderDescription } from '../Loader'
  * Loader implementation.
  */
 class LoaderImplementation implements Loader {
-  public load(filename: string) {
-    return parse(readFileSync(filename, { encoding: 'utf8' }))
+  public load(fileName: string) {
+    return parse(readFileSync(fileName, { encoding: 'utf8' }))
   }
 
-  public async asyncLoad(filename: string) {
-    const content = await promisify(readFile)(filename, { encoding: 'utf8' })
+  public async asyncLoad(fileName: string) {
+    const content = await promisify(readFile)(fileName, { encoding: 'utf8' })
     return parse(content)
   }
 }

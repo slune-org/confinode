@@ -6,9 +6,9 @@ import Loader, { LoaderType } from '../Loader'
 class LoaderImplementation implements Loader {
   public constructor(_: any, private readonly entry: string) {}
 
-  public load(filename: string) {
+  public load(fileName: string) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const content = require(filename)
+    const content = require(fileName)
     if (content && this.entry in content) {
       return content[this.entry]
     } else {

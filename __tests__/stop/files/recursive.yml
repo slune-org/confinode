@@ -1,0 +1,6 @@
+extends:
+  - './recursive.json'
+a: a in recursive.yml
+b: b in recursive.yml
+c: c in recursive.yml
+e: e in recursive.yml

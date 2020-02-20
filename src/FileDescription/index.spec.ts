@@ -4,7 +4,7 @@ import { expect } from 'chai'
 import { defaultFiles, isFileBasename, noPackageJson } from '.'
 
 describe('File descriptions', function() {
-  it('should give the list of default filenames in defaultFiles', function() {
+  it('should give the list of default file names in defaultFiles', function() {
     expect(
       defaultFiles('[name]').map(file => (isFileBasename(file) ? file : `“${file.name}”`))
     ).to.deep.equal([

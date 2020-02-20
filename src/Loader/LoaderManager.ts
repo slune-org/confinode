@@ -83,14 +83,14 @@ export default class LoaderManager {
    * Get the loader for the given file name.
    *
    * @param paths - The extra paths where modules are searched.
-   * @param filename - The (base) name of the file to search.
+   * @param fileName - The (base) name of the file to search.
    * @param extension - The extension of the file if already known.
    * @returns The most appropriate loader or undefined if none found.
    */
-  public getLoaderFor(paths: string[], filename: string, extension?: string): LoadedLoader | undefined {
+  public getLoaderFor(paths: string[], fileName: string, extension?: string): LoadedLoader | undefined {
     const foundModuleOrDescription = this.availableTypes
       .filter(availableType =>
-        extension ? availableType === extension : filename.endsWith('.' + availableType)
+        extension ? availableType === extension : fileName.endsWith('.' + availableType)
       )
       .reduce((previous, type) => [...previous, ...this.descriptions[type]], [] as LoaderOrDescription[])
       .map<[LoaderOrDescription, string | undefined]>(description => [

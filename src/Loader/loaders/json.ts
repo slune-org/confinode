@@ -4,9 +4,9 @@ import Loader, { LoaderDescription } from '../Loader'
  * Loader implementation.
  */
 class LoaderImplementation implements Loader {
-  public load(filename: string) {
+  public load(fileName: string) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require(filename)
+    return require(fileName)
   }
 }
 

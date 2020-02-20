@@ -24,7 +24,7 @@ In order to use _confinode_, you just have to create a `Confinode` object, then 
 Providing a description is not mandatory. This allow to gradually integrate _confinode_. Anyway, this should only be a transient step, because lack of configuration will prevent _confinode_ from:
 
 - check user provided configuration validity;
-- ~~correctly merge an inherited configuration.~~ (:construction: TODO: WIP)
+- correctly merge an inherited configuration.
 
 For a _TypeScript_ user, configuration description should start with configuration type definition. For example:
 
@@ -175,7 +175,7 @@ The result of search or load is a `ConfinodeResult` object. This object contains
 The `ResultFile` type itself contains 2 properties:
 
 - `name` is the loaded file name;
-- `extends` is an array of `ResultFile` ~~containing the inherited configuration files~~ (:construction: TODO: WIP).
+- `extends` is an array of `ResultFile` containing the inherited configuration files.
 
 # Create additional tools
 
