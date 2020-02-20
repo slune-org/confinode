@@ -19,7 +19,7 @@ writeFileSync(
         loaderDescriptions[key]
           .map(
             description =>
-              '* ' + description.name + (description.module ? ` (module “${description.module}”)` : '')
+              '* ' + description.name + (description.module ? ` (module: “${description.module}”)` : '')
           )
           .join('\n' + ' '.repeat(6))
     )
