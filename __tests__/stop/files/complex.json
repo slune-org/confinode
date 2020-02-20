@@ -1,0 +1,5 @@
+{
+  "extends": ["./complex.js", "./complex.yml"],
+  "a": "a in complex.json",
+  "d": "d in complex.json"
+}

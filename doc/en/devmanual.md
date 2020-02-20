@@ -24,7 +24,7 @@ In order to use _confinode_, you just have to create a `Confinode` object, then 
 Providing a description is not mandatory. This allow to gradually integrate _confinode_. Anyway, this should only be a transient step, because lack of configuration will prevent _confinode_ from:
 
 - check user provided configuration validity;
-- ~~correctly merge an inherited configuration.~~ (:construction: TODO: WIP)
+- correctly merge an inherited configuration.
 
 For a _TypeScript_ user, configuration description should start with configuration type definition. For example:
 
@@ -104,6 +104,12 @@ The `searchStop` option is a string indicating the folder after which searching 
 
 When _confinode_ searches for a configuration file, if no matching file is found in the current folder, it is searched in the parent folder, and so on, until it reach either the folder indicated by `searchStop` or the root of the file system.
 
+## “modulePaths” option
+
+Loader modules are always searched based on current folder and on currently being read configuration files. In the event of your application importing some modules, you may want to add its folder. The `modulePaths` options accepts a list of additional folders which will be provided to `require.resolve()` to search for modules.
+
+Note that the current folder is always added and it is therefore useless to give it here.
+
 ## “logger” option
 
 The library is regularly emitting some messages with different levels: _error_, _warning_, _information_ and _trace_. By default, _error_ messages are displayed on error output and _warning_ messages on standard output. Others are ignored.
@@ -169,7 +175,7 @@ The result of search or load is a `ConfinodeResult` object. This object contains
 The `ResultFile` type itself contains 2 properties:
 
 - `name` is the loaded file name;
-- `extends` is an array of `ResultFile` ~~containing the inherited configuration files~~ (:construction: TODO: WIP).
+- `extends` is an array of `ResultFile` containing the inherited configuration files.
 
 # Create additional tools
 

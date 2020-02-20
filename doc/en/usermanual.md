@@ -15,7 +15,7 @@ Once the corresponding file found, the application will search for loader matchi
 
 The list of managed extensions with the required modules can be found in [this file](../extensions.txt). You will see there that some extensions let you choose between multiple possible modules to use.
 
-Once interpreted, your configuration file must return either an object literal ~~or a string~~ (:construction: TODO: WIP).
+Once interpreted, your configuration file must return either an object literal or a string.
 
 # Configuration search
 
@@ -33,8 +33,16 @@ The configuration file is first searched in the current folder then, if not foun
 
 # Indirection
 
-:construction: TODO: Work in progress :construction:
+It is possible to use indirections. If, for example, you put all your configuration files in a specific place, but you do not want to give this place each time you call the application, you can specify this place in one of the automatically searched files. For this, the file just have to return a string which will be used as true configuration file name.
 
-# Heritage
+So, for _starwars_ application, you can use the `starwars` entry of `package.json` not to put the full configuration, but to give the real path to the configuration file to use.
 
-:construction: TODO: Work in progress :construction:
+Note that if you give a relative file name in your indirection, the file will be searched relative to the place of the current configuration file.
+
+# Inheritance
+
+It is possible to write a configuration file which inherit from one or more other files. This may be useful if, for example, you have a company global configuration to which you wish to add you specificities or, in the case of theme-oriented configuration files that you want to merge.
+
+In order to do that, you have to add to your configuration object a key named `extends` which contains either directly the name of the file to inherit from or an array of file names to inherit from. If you inherit from multiple files, they are taken in the specified order, the data of the latter can replace the one of the formers.
+
+Note that if you give a relative file name in your `extends` entry, the file will be searched relative to the place of the current configuration file.

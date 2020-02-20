@@ -2,6 +2,7 @@
  * All the messages of the library.
  */
 export const messages = {
+  badExtends: () => `Extended files parameter is not properly formatted`,
   emptyConfiguration: () => 'Empty configuration',
   expected: (entry: string, file: string, expected: any) =>
     `Configuration error: “${entry}” is expected to be ${expected.toString()}\n in file “${file}”`,
@@ -21,6 +22,7 @@ export const messages = {
   missingMandatory: (entry: string) => `Configuration error: missing mandatory “${entry}” option`,
   multipleFiles: (path: string) => `Multiple configuration files found for “${path}.*”`,
   noLoaderFound: (file: string) => `No appropriate loader found for file ${file}`,
+  recursion: (files: string[]) => `Recursion in configuration files:\n${files.join('\n  --> ')}`,
   searchInFolder: (folder: string) => `Search for configuration in ${folder}`,
 }
 

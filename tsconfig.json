@@ -19,22 +19,12 @@
         "autoRequires": [
           {
             "source": {
-              "glob": "loaders/*.ts",
-              "ignore": ["**/index.ts", "**/Loader.ts", "**/LoaderManager.ts", "**/*.spec.ts"]
+              "glob": "Loader/loaders/*.ts",
+              "ignore": ["**/index.ts", "**/helpers.ts"]
             },
             "target": {
-              "file": "loaders/LoaderManager.ts",
-              "variable": "loaderDescriptions"
-            }
-          },
-          {
-            "source": {
-              "glob": "loaders/*.ts",
-              "ignore": ["**/index.ts", "**/Loader.ts", "**/LoaderManager.ts", "**/*.spec.ts"]
-            },
-            "target": {
-              "file": "tools/managedExtensions.ts",
-              "variable": "loaderDescriptions"
+              "file": "Loader/loaders/index.ts",
+              "variable": "loaders"
             }
           },
           {

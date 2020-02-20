@@ -3,11 +3,11 @@ import { basename, dirname, join, resolve } from 'path'
 import ConfigDescription, { anyItem } from '../ConfigDescription'
 import ConfinodeError from '../ConfinodeError'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
-import { Loader, LoaderManager } from '../loaders'
+import Loader, { LoaderManager } from '../Loader'
 import { Level, Message, MessageId, MessageParameters } from '../messages'
-import { isExisting } from '../utils'
+import { isExisting, pushIfNew, unique } from '../utils'
 import ConfinodeOptions, { ConfinodeParameters, defaultConfig, filesAreFilters } from './ConfinodeOptions'
-import ConfinodeResult from '../ConfinodeResult'
+import ConfinodeResult, { ResultFile } from '../ConfinodeResult'
 import {
   Request,
   asyncExecute,
@@ -37,6 +37,64 @@ type LoadFunctionType<T extends object, M extends 'async' | 'sync'> = M extends 
       (name: string): ConfinodeResult<T> | undefined
       async: (name: string) => Promise<ConfinodeResult<T> | undefined>
     }
+
+/**
+ * Recursive parameters for loading process.
+ */
+interface LoadingParameters<T> {
+  alreadyLoaded: string[]
+  intermediateResult: ConfinodeResult<T> | undefined
+  disableCache: boolean
+  final: boolean
+}
+
+/**
+ * Test if the given parameter is a set of loading process parameter.
+ *
+ * @param parameter - The parameter to test.
+ * @returns True if loading process parameters.
+ */
+function isLoadingParameters<T>(
+  parameter: { name?: string; loader: Loader } | LoadingParameters<T>
+): parameter is LoadingParameters<T> {
+  return (
+    'alreadyLoaded' in parameter &&
+    'intermediateResult' in parameter &&
+    'disableCache' in parameter &&
+    'final' in parameter
+  )
+}
+
+/**
+ * The default loading parameters, for the first loaded file.
+ */
+const defaultLoadingParameters: LoadingParameters<any> = {
+  alreadyLoaded: [],
+  intermediateResult: undefined,
+  disableCache: false,
+  final: true,
+}
+
+/**
+ * Check if content is extending another configuration.
+ *
+ * @param content - The content to check.
+ * @returns True if content has extends.
+ */
+function isExtending(content: unknown): content is { extends: string | string[] } {
+  if (typeof content === 'object' && !!content && 'extends' in content) {
+    const extensions = (content as any).extends
+    if (
+      typeof extensions !== 'string' &&
+      (!Array.isArray(extensions) || extensions.some(extension => typeof extension !== 'string'))
+    ) {
+      throw new ConfinodeError('badExtends')
+    }
+    return true
+  } else {
+    return false
+  }
+}
 
 /**
  * The main Confinode class.
@@ -69,6 +127,8 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     )
 
     // Prepare options
+    this.parameters.modulePaths = this.parameters.modulePaths.map(path => resolve(process.cwd(), path))
+    this.parameters.modulePaths.unshift(process.cwd())
     if (!options?.files || filesAreFilters(options.files)) {
       this.parameters.files = defaultFiles(name)
     }
@@ -240,7 +300,11 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       const loaders = fileNames
         .filter(fileName => fileName.startsWith(baseName))
         .map(fileName => {
-          const loader = this.loaderManager.getLoaderFor(fileName, fileName.slice(baseName.length))
+          const loader = this.loaderManager.getLoaderFor(
+            this.parameters.modulePaths,
+            fileName,
+            fileName.slice(baseName.length)
+          )
           return isExisting(loader)
             ? { fileName: join(folderName, fileName), loaderName: loader.name, loader: loader.loader }
             : undefined
@@ -289,11 +353,13 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * @param name - The name of the configuration file. The name may be an absolute file path, a relative
    * file path, or a module name and an optional file path.
    * @param folder - The folder to resolve name from, defaults to current directory.
+   * @param loadingParameters - The parameters for the current loading process.
    * @returns The configuration if loaded, undefined otherwise.
    */
   private *loadConfig(
     name: string,
-    folder: string = process.cwd()
+    folder: string = process.cwd(),
+    loadingParameters?: LoadingParameters<T>
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
     // Search for the real file name
     let fileName: string | undefined
@@ -308,9 +374,15 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       if (!fileName || !(yield requestFileExits(fileName))) {
         throw new ConfinodeError('fileNotFound', name)
       }
-      return yield* this.loadConfigFile(fileName)
+      return yield* this.loadConfigFile(fileName, loadingParameters ?? defaultLoadingParameters)
     } catch (e) {
-      this.log('loading', e)
+      if (loadingParameters) {
+        // Currently inside loading process, rethrow to caller
+        throw e
+      } else {
+        // Topmost call, display error
+        this.log('loading', e)
+      }
     }
 
     // Return result
@@ -321,23 +393,37 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Load the configuration file.
    *
    * @param fileName - The name of the file to load.
-   * @param loader - The loader to use, if already found.
+   * @param loaderOrLoading - The loader to use (if already found, search file cases) or the loading
+   * parameters (loading in progress).
    * @returns The method will return the configuration, or undefined if content is empty (the meaning of
    * empty depends on the loader). May throw an error if loading problem.
    */
   private *loadConfigFile(
     fileName: string,
-    loader?: { name?: string; loader: Loader }
+    loaderOrLoading: { name?: string; loader: Loader } | LoadingParameters<T>
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
+    const loader = isLoadingParameters(loaderOrLoading) ? undefined : loaderOrLoading
+    const loadingParameters: LoadingParameters<T> = isLoadingParameters(loaderOrLoading)
+      ? loaderOrLoading
+      : defaultLoadingParameters
     const absoluteFile = resolve(process.cwd(), fileName)
     this.log(Level.Trace, 'loadingFile', absoluteFile)
-    if (absoluteFile in this.contentCache) {
+    if (absoluteFile in this.contentCache && !loadingParameters.disableCache) {
       this.log(Level.Trace, 'loadedFromCache')
       return this.contentCache[absoluteFile]
     }
 
+    // Prevent recursion loop
+    if (loadingParameters.alreadyLoaded.includes(absoluteFile)) {
+      throw new ConfinodeError('recursion', [...loadingParameters.alreadyLoaded, absoluteFile])
+    }
+
     // Search for the loader if not provided
-    const usedLoader = loader ?? this.loaderManager.getLoaderFor(basename(absoluteFile))
+    const modulePaths = [
+      ...this.parameters.modulePaths,
+      ...loadingParameters.alreadyLoaded.map(dirname).filter(unique),
+    ]
+    const usedLoader = loader ?? this.loaderManager.getLoaderFor(modulePaths, basename(absoluteFile))
     if (!usedLoader) {
       throw new ConfinodeError('noLoaderFound', absoluteFile)
     }
@@ -346,20 +432,50 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
 
     // Loading file content
-    let result: ConfinodeResult<T> | undefined
+    let result = loadingParameters.intermediateResult
     const content = yield requestLoadConfigFile(absoluteFile, usedLoader.loader)
     if (content === undefined) {
       this.log(Level.Trace, 'emptyConfiguration')
     } else {
-      // TODO Look for indirection
-      // TODO Look if extends for inheritage
+      const alreadyLoaded = [...loadingParameters.alreadyLoaded, absoluteFile]
+      if (typeof content === 'string') {
+        // Indirection
+        return yield* this.loadConfig(content, dirname(absoluteFile), {
+          ...loadingParameters,
+          alreadyLoaded,
+        })
+      } else {
+        const resultFile: ResultFile = { name: absoluteFile, extends: [] }
 
-      // Parse file
-      result = this.description.parse(content, { keyName: '', fileName, final: true })
-      result && (result = new ConfinodeResult(result, { fileName, extends: [] }))
+        // Inheritance
+        if (isExtending(content)) {
+          const parentConfigs = typeof content.extends === 'string' ? [content.extends] : content.extends
+          delete content.extends
+          let disableCache = loadingParameters.disableCache
+          for (const parentConfig of parentConfigs) {
+            result = yield* this.loadConfig(parentConfig, dirname(absoluteFile), {
+              alreadyLoaded,
+              intermediateResult: result,
+              disableCache,
+              final: false,
+            })
+            pushIfNew(resultFile.extends, result!.files, item => item.name === result!.files.name)
+            disableCache = true // Never load siblings with cache as result depends on previous loads
+          }
+        }
+
+        // Parse file
+        result = this.description.parse(content, {
+          keyName: '',
+          fileName: absoluteFile,
+          parent: result,
+          final: loadingParameters.final,
+        })
+        result && (result = new ConfinodeResult(result, resultFile))
+      }
     }
 
-    if (this.parameters.cache) {
+    if (this.parameters.cache && !loadingParameters.disableCache) {
       this.contentCache[absoluteFile] = result
     }
     return result

@@ -6,5 +6,7 @@
   "starwars": {
     "found": true,
     "where": "package.json"
-  }
+  },
+  "complex": "./complex.json",
+  "recursive": "./recursive.json"
 }

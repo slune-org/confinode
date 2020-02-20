@@ -1,7 +1,7 @@
 import { access, accessSync, constants, readdir, readdirSync } from 'fs'
 import { isDirectory, isDirectorySync } from 'path-type'
 
-import { Loader } from '../loaders'
+import Loader from '../Loader'
 import { assertNever } from '../utils'
 
 /**

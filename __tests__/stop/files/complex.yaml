@@ -1,0 +1,3 @@
+extends: './complex.ts'
+a: a in complex.yaml
+b: b in complex.yaml

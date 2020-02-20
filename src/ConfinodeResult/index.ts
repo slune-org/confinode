@@ -1,1 +1,1 @@
-export { default } from './ConfinodeResult'
+export { default, ResultFile } from './ConfinodeResult'
