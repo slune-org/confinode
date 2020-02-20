@@ -105,18 +105,18 @@ describe('Confinode', function() {
         })
 
         it('should load requested file', async function() {
-          const promise = confinode.load(join(testDir, '.gonewiththewindrc.json'))
+          const promise = confinode.load(join(testDir, '.gonewiththewindrc.ts'))
           await expect(promise).to.eventually.exist
           const result = await promise
           expect(result?.configuration.found).to.be.true
-          expect(result?.configuration.where).to.equal('.gonewiththewindrc.json')
+          expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
         })
 
         it('should load requested file synchronously', function() {
-          const result = confinode.load.sync(join(testDir, '.gonewiththewindrc.json'))
+          const result = confinode.load.sync(join(testDir, '.gonewiththewindrc.ts'))
           expect(result).to.exist
           expect(result?.configuration.found).to.be.true
-          expect(result?.configuration.where).to.equal('.gonewiththewindrc.json')
+          expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
         })
 
         it('should not contain search.async method', function() {
@@ -155,18 +155,18 @@ describe('Confinode', function() {
       })
 
       it('should load requested file', function() {
-        const result = confinode.load(join(testDir, '.gonewiththewindrc.json'))
+        const result = confinode.load(join(testDir, '.gonewiththewindrc.ts'))
         expect(result).to.exist
         expect(result?.configuration.found).to.be.true
-        expect(result?.configuration.where).to.equal('.gonewiththewindrc.json')
+        expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
       })
 
       it('should load requested file asynchronously', async function() {
-        const promise = confinode.load.async(join(testDir, '.gonewiththewindrc.json'))
+        const promise = confinode.load.async(join(testDir, '.gonewiththewindrc.ts'))
         await expect(promise).to.eventually.exist
         const result = await promise
         expect(result?.configuration.found).to.be.true
-        expect(result?.configuration.where).to.equal('.gonewiththewindrc.json')
+        expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
       })
 
       it('should not contain search.sync method', function() {
@@ -204,7 +204,7 @@ describe('Confinode', function() {
               Array.of(
                 () => confinode.search(moduleDir),
                 () => confinode.search(join(testDir, 'stop')),
-                () => confinode.load(join(testDir, '.gonewiththewindrc.json'))
+                () => confinode.load(join(testDir, '.gonewiththewindrc.ts'))
               ).map(async run => {
                 storedLogs = []
                 await run()
@@ -218,7 +218,7 @@ describe('Confinode', function() {
             Array.of(
               () => confinode.search.sync(moduleDir),
               () => confinode.search.sync(join(testDir, 'stop')),
-              () => confinode.load.sync(join(testDir, '.gonewiththewindrc.json'))
+              () => confinode.load.sync(join(testDir, '.gonewiththewindrc.ts'))
             ).map(run => {
               storedLogs = []
               run()
@@ -258,7 +258,7 @@ describe('Confinode', function() {
           searchStop: moduleDir,
           logger: ignoreLogs,
         })
-        await expect(confinode.load(join(testDir, '.gonewiththewindrc.json'))).to.eventually.exist
+        await expect(confinode.load(join(testDir, '.gonewiththewindrc.ts'))).to.eventually.exist
       })
 
       it('should stop searching when reaching root', async function() {
@@ -314,7 +314,7 @@ describe('Confinode', function() {
           files: [noPackageJson],
         })
         const starwarsConfig = await starwars.search(moduleDir)
-        expect(starwarsConfig?.configuration.where).to.equal('.starwarsrc.yml')
+        expect(starwarsConfig?.configuration.where).to.equal('.starwarsrc.js')
       })
 
       it('should not find filtered out files', async function() {
@@ -333,7 +333,7 @@ describe('Confinode', function() {
           files: ['.gonewiththewindrc'],
         })
         const titanicResult = await titanic.search(moduleDir)
-        expect(titanicResult?.configuration.where).to.equal('.gonewiththewindrc.json')
+        expect(titanicResult?.configuration.where).to.equal('.gonewiththewindrc.ts')
       })
     })
   })
@@ -360,7 +360,7 @@ describe('Confinode', function() {
         logger: ignoreLogs,
       })
       const result = await gonewiththewind.search(join(moduleDir, 'package.json'))
-      expect(result?.configuration.where).to.equal('.gonewiththewindrc.json')
+      expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
     })
   })
 
@@ -377,7 +377,9 @@ describe('Confinode', function() {
     })
 
     it('should load given absolute configuration file', async function() {
-      await expect(confinode.load(join(moduleDir, '.starwarsrc.yml'))).to.eventually.exist
+      await confinode.load(join(moduleDir, '.starwarsrc.js'))
+      storedLogs.map(String).forEach(console.log)
+      await expect(confinode.load(join(moduleDir, '.starwarsrc.js'))).to.eventually.exist
     })
 
     it('should load given relative configuration file', async function() {

@@ -30,6 +30,7 @@ function isLoadedLoader(description: LoaderOrDescription): description is Loaded
  * @param description - The description to test.
  */
 function assertIsLoadedLoader(description: LoaderOrDescription): asserts description is LoadedLoader {
+  /* istanbul ignore if */
   if (!isLoadedLoader(description)) {
     throw new Error('Description should contain a loaded loader')
   }
