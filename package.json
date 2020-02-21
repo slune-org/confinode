@@ -21,7 +21,7 @@
     "test:lint": "eslint --config .eslintrc.full.yaml 'src/**/*.ts'",
     "test:dep": "depcheck",
     "test:unit": "cross-env TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript nyc mocha 'src/**/*.spec.ts'",
-    "test:integration": "pm-exec run build:main && glob-exec --foreach --parallel './__tests__/projects/tested/*/package.json' -- 'cd {{file.dir}} && pm-exec test'",
+    "test:integration": "pm-exec run build:main && glob-exec --foreach './__tests__/projects/tested/*/package.json' -- 'cd {{file.dir}} && pm-exec test'",
     "build": "pm-exec run build:main && pm-exec run build:extensions",
     "build:extensions": "cross-env TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript ts-node src/tools/managedExtensions.ts doc/extensions.txt",
     "build:main": "ttsc",

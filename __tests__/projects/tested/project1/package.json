@@ -3,14 +3,29 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "my-wonderful-app ./config.toml"
+    "test": "pm-exec run test:babel-js && pm-exec run test:cirru && pm-exec run test:coffee && pm-exec run test:toml",
+    "test:babel-js": "pm-exec run test:babel-js:babel.js && pm-exec run test:babel-js:jsx",
+    "test:babel-js:babel.js": "my-wonderful-app ./config.babel.js",
+    "test:babel-js:jsx": "my-wonderful-app ./config.jsx",
+    "test:babel-ts": "my-wonderful-app ./config.babel.ts",
+    "test:cirru": "my-wonderful-app ./config.cirru",
+    "test:coffee": "pm-exec run test:coffee:coffee && pm-exec run test:coffee:coffee.md && pm-exec run test:coffee:litcoffee",
+    "test:coffee:coffee": "my-wonderful-app ./config.coffee",
+    "test:coffee:coffee.md": "my-wonderful-app ./config.coffee.md",
+    "test:coffee:litcoffee": "my-wonderful-app ./config.litcoffee",
+    "test:toml": "my-wonderful-app ./config.toml"
   },
   "author": "Slune",
   "license": "MIT",
   "dependencies": {
+    "@babel/core": "7.8.4",
+    "@babel/register": "7.8.3",
+    "cirru-script": "0.6.2",
+    "coffeescript": "2.5.1",
     "toml": "3.0.0"
   },
   "devDependencies": {
-    "my-wonderful-app": "file:../../app"
+    "my-wonderful-app": "file:../../app",
+    "pm-exec": "1.0.0"
   }
 }

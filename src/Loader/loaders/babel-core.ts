@@ -1,5 +1,5 @@
 import { LoaderDescription, RequiringLoader } from '../Loader'
-import { ignoreNonBabelAndNodeModules } from './helpers'
+import { noEndsInBabelJs } from './helpers'
 
 /**
  * Loader implementation.
@@ -10,12 +10,12 @@ class LoaderImplementation extends RequiringLoader {
     required({
       extensions: '.js',
       rootMode: 'upward-optional',
-      ignore: [ignoreNonBabelAndNodeModules],
+      ignore: noEndsInBabelJs,
     })
     required({
       extensions: '.jsx',
       rootMode: 'upward-optional',
-      ignore: [ignoreNonBabelAndNodeModules],
+      ignore: noEndsInBabelJs,
     })
   }
 }

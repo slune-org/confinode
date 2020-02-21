@@ -1,0 +1,20 @@
+{
+  "name": "project2",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "pm-exec run test:babel",
+    "test:babel": "pm-exec run test:babel:babel.js && pm-exec run test:babel:jsx",
+    "test:babel:babel.js": "my-wonderful-app ./config.babel.js",
+    "test:babel:jsx": "my-wonderful-app ./config.jsx"
+  },
+  "author": "Slune",
+  "license": "MIT",
+  "dependencies": {
+    "babel-register": "6.26.0"
+  },
+  "devDependencies": {
+    "my-wonderful-app": "file:../../app",
+    "pm-exec": "1.0.0"
+  }
+}
