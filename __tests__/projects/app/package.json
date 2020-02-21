@@ -1,0 +1,13 @@
+{
+  "name": "my-wonderful-app",
+  "version": "0.0.0",
+  "bin": {
+    "my-wonderful-app": "./bin.js"
+  },
+  "private": true,
+  "author": "Slune",
+  "license": "MIT",
+  "dependencies": {
+    "confinode": "file:../../../"
+  }
+}

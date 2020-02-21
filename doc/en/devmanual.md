@@ -80,7 +80,9 @@ If you want to code in plain _JavaScript_, you will just have to remove the conf
 
 Note that configuration description should always start by a `literal`. Otherwise _confinode_ may have an unexpected behavior.
 
-The element descriptions lies in [this file](../../src/ConfigDescription/helpers.ts).
+Note that the main `literal` object in description should not have an `extends` key. The `extends` key is used for inheritance by _confinode_ and removed from data before parsing.
+
+The element descriptions lie in [this file](../../src/ConfigDescription/helpers.ts).
 
 # Constructor
 

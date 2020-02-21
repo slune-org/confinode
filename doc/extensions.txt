@@ -1,17 +1,40 @@
+.babel.js:
+      * @babel/register-js (module: “@babel/register”)
+      * babel-core (module: “babel-core/register”)
+      * babel-register (module: “babel-register”)
+.babel.ts:
+      * @babel/register-ts (module: “@babel/register”)
+.buble.js:
+      * buble (module: “buble/register”)
+.cirru:
+      * cirru-script (module: “cirru-script/lib/register”)
+.cjsx:
+      * node-cjsx (module: “node-cjsx/register”)
+.coffee:
+      * coffeescript (module: “coffeescript/register”)
+      * node-cjsx (module: “node-cjsx/register”)
+.coffee.md:
+      * coffeescript (module: “coffeescript/register”)
 .js:
       * javascript
 .json:
       * json
+.jsx:
+      * @babel/register-js (module: “@babel/register”)
+      * babel-core (module: “babel-core/register”)
+      * babel-register (module: “babel-register”)
+.litcoffee:
+      * coffeescript (module: “coffeescript/register”)
+.toml:
+      * @iarna/toml (module: “@iarna/toml”)
+      * toml (module: “toml”)
 .ts:
-      * @babel-register-ts (module “@babel/register”)
-      * ts-node (module “ts-node/register”)
-      * typescript-node (module “typescript-node/register”)
-      * typescript-register (module “typescript-register”)
-      * typescript-require (module “typescript-require”)
+      * @babel/register-ts (module: “@babel/register”)
+      * ts-node (module: “ts-node/register”)
+      * typescript-require (module: “typescript-require”)
 .tsx:
-      * @babel-register-ts (module “@babel/register”)
-      * ts-node (module “ts-node/register”)
-      * typescript-node (module “typescript-node/register”)
+      * @babel/register-ts (module: “@babel/register”)
+      * ts-node (module: “ts-node/register”)
 .yaml:
       * yaml
 .yml:

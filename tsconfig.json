@@ -19,7 +19,7 @@
         "autoRequires": [
           {
             "source": {
-              "glob": "Loader/loaders/*.ts",
+              "glob": "Loader/loaders/**/*.ts",
               "ignore": ["**/index.ts", "**/helpers.ts"]
             },
             "target": {

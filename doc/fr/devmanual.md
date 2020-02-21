@@ -80,6 +80,8 @@ Si vous souhaitez coder en pure _JavaScript_, il faudra simplement retirer la r�
 
 Notez que la description de configuration devrait toujours commencer par un `literal`. Dans le cas contraire, _confinode_ pourrait avoir un comportement inattendu.
 
+Notez que l'objet `literal` principal de la description ne devrait pas contenir d'entrée `extends`. L'entrée `extends` est utilisée par _confinode_ pour l'héritage et est supprimée des données avant l'analyse.
+
 Les différents éléments de description se trouvent dans [ce fichier](../../src/ConfigDescription/helpers.ts).
 
 # Constructeur

@@ -4,7 +4,7 @@ import { relative, sep } from 'path'
  * The babel files regular expression. Taken from the Gulp “interpret” project:
  * https://github.com/gulpjs/interpret.
  */
-const endsInBabelJs = /\.babel\.[jt]s(x)$/
+export const noEndsInBabelJs = /(?!\.babel\.[jt]s(x))$/
 
 /**
  * Check if file is a babel or node module. Taken from the Gulp “interpret” project:
@@ -15,7 +15,7 @@ const endsInBabelJs = /\.babel\.[jt]s(x)$/
  */
 export function ignoreNonBabelAndNodeModules(file: string) {
   return (
-    !endsInBabelJs.test(file) &&
+    noEndsInBabelJs.test(file) &&
     relative(process.cwd(), file)
       .split(sep)
       .indexOf('node_modules') >= 0
