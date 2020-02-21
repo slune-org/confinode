@@ -40,7 +40,7 @@ export default class ConfinodeResult<T> {
   /**
    * All the files used to read the configuration.
    */
-  private readonly files_?: ResultFile
+  private files_?: ResultFile
 
   /**
    * Create the result based on real data and file name.
@@ -60,35 +60,31 @@ export default class ConfinodeResult<T> {
    */
   public constructor(direct: false, children: ResultChildren)
 
-  /**
-   * Create a new result based on existing one. Used to add the result file.
-   *
-   * @param result - The existing result.
-   * @param files - The result file.
-   */
-  public constructor(result: ConfinodeResult<T>, files: ResultFile)
-
   /* Implementation */
-  public constructor(
-    directOrResult: boolean | ConfinodeResult<T>,
-    dataOrChildrenOrFiles: T | ResultChildren | ResultFile,
-    fileName?: string
-  ) {
-    if (directOrResult instanceof ConfinodeResult) {
-      // Create a new result based on existing one
-      this.configuration = directOrResult.configuration
-      this.fileName = directOrResult.fileName
-      directOrResult.children && (this.children = directOrResult.children)
-      this.files_ = dataOrChildrenOrFiles as ResultFile
-    } else if (directOrResult === false) {
+  public constructor(direct: boolean, dataOrChildren: T | ResultChildren, fileName?: string) {
+    if (direct === false) {
       // Create the result based on children elements
-      this.children = dataOrChildrenOrFiles as ResultChildren
+      this.children = dataOrChildren as ResultChildren
       this.configuration = new Proxy(this.children, handle('configuration')) as any
       this.fileName = new Proxy(this.children, handle('fileName'))
     } else {
       // Create the result based on real data and file name
-      this.configuration = dataOrChildrenOrFiles as T
+      this.configuration = dataOrChildren as T
       this.fileName = fileName
+    }
+  }
+
+  /**
+   * Set the files. This must be called only once on the final result.
+   *
+   * @param files - The files to set.
+   */
+  public set files(files: ResultFile) {
+    /* istanbul ignore else */
+    if (!this.files_) {
+      this.files_ = files
+    } else {
+      throw new Error('This is already a final result')
     }
   }
 
@@ -96,11 +92,11 @@ export default class ConfinodeResult<T> {
    * @returns All the files used to read the configuration.
    */
   public get files(): ResultFile {
-    /* istanbul ignore if */
-    if (!this.files_) {
-      throw new Error('Result is not fully initialized')
-    } else {
+    /* istanbul ignore else */
+    if (this.files_) {
       return this.files_
+    } else {
+      throw new Error('This is not a final result')
     }
   }
 }

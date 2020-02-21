@@ -471,7 +471,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
           parent: result,
           final: loadingParameters.final,
         })
-        result && (result = new ConfinodeResult(result, resultFile))
+        result && (result.files = resultFile)
       }
     }
 

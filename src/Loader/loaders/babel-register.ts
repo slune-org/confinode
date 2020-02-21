@@ -1,5 +1,5 @@
-import { LoaderDescription, RequiringLoader } from '../../Loader'
-import { ignoreNonBabelAndNodeModules } from '../helpers'
+import { LoaderDescription, RequiringLoader } from '../Loader'
+import { ignoreNonBabelAndNodeModules } from './helpers'
 
 /**
  * Loader implementation.
@@ -8,12 +8,12 @@ class LoaderImplementation extends RequiringLoader {
   public constructor(required: any) {
     super()
     required({
-      extensions: '.ts',
+      extensions: '.js',
       rootMode: 'upward-optional',
       ignore: [ignoreNonBabelAndNodeModules],
     })
     required({
-      extensions: '.tsx',
+      extensions: '.jsx',
       rootMode: 'upward-optional',
       ignore: [ignoreNonBabelAndNodeModules],
     })
@@ -24,8 +24,8 @@ class LoaderImplementation extends RequiringLoader {
  * Loader description.
  */
 const description: LoaderDescription = {
-  filetypes: ['babel.ts', 'ts', 'tsx'],
+  filetypes: ['babel.js', 'jsx'],
   Loader: LoaderImplementation,
-  module: '@babel/register',
+  module: 'babel-register',
 }
 export default description

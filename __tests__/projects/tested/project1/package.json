@@ -1,0 +1,16 @@
+{
+  "name": "project1",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "my-wonderful-app ./config.toml"
+  },
+  "author": "Slune",
+  "license": "MIT",
+  "dependencies": {
+    "toml": "3.0.0"
+  },
+  "devDependencies": {
+    "my-wonderful-app": "file:../../app"
+  }
+}

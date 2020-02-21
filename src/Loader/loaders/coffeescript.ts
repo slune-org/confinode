@@ -4,8 +4,8 @@ import { LoaderDescription, RequiringLoader } from '../Loader'
  * Loader description.
  */
 const description: LoaderDescription = {
-  filetypes: ['ts', 'tsx'],
+  filetypes: ['coffee', 'coffee.md', 'litcoffee'],
   Loader: RequiringLoader,
-  module: 'typescript-node/register',
+  module: 'coffeescript/register',
 }
 export default description

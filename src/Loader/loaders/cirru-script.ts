@@ -4,8 +4,8 @@ import { LoaderDescription, RequiringLoader } from '../Loader'
  * Loader description.
  */
 const description: LoaderDescription = {
-  filetypes: 'ts',
+  filetypes: 'cirru',
   Loader: RequiringLoader,
-  module: 'typescript-register',
+  module: 'cirru-script/lib/register',
 }
 export default description
