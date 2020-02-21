@@ -12,6 +12,8 @@
     "!lib/tools/**"
   ],
   "scripts": {
+    "version": "npm run all",
+    "postversion": "git push && git push --tags",
     "prepublishOnly": "npm run all",
     "all": "npm run clean && npm run test && npm run build",
     "test": "npm run test:lint && npm run test:dep && npm run test:unit",
