@@ -15,16 +15,31 @@
       * node-cjsx (module: “node-cjsx/register”)
 .coffee.md:
       * coffeescript (module: “coffeescript/register”)
+.eg:
+      * earlgrey (module: “earlgrey/register”)
+.esm.js:
+      * esm (module: “esm”)
+.iced:
+      * iced-coffee-script (module: “iced-coffee-script/register”)
+.iced.md:
+      * iced-coffee-script (module: “iced-coffee-script/register”)
+.ini:
+      * ini (module: “ini”)
+      * node-ini (module: “node-ini”)
 .js:
       * javascript
 .json:
       * json
+.json5:
+      * json5 (module: “json5”)
 .jsx:
       * @babel/register-js (module: “@babel/register”)
       * babel-core (module: “babel-core/register”)
       * babel-register (module: “babel-register”)
 .litcoffee:
       * coffeescript (module: “coffeescript/register”)
+.liticed:
+      * iced-coffee-script (module: “iced-coffee-script/register”)
 .toml:
       * @iarna/toml (module: “@iarna/toml”)
       * toml (module: “toml”)

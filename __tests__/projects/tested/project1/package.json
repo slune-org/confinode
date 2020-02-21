@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "pm-exec run test:babel-js && pm-exec run test:cirru && pm-exec run test:coffee && pm-exec run test:toml",
+    "test": "pm-exec run test:babel-js && pm-exec run test:cirru && pm-exec run test:coffee && pm-exec run test:ini && pm-exec run test:toml",
     "test:babel-js": "pm-exec run test:babel-js:babel.js && pm-exec run test:babel-js:jsx",
     "test:babel-js:babel.js": "my-wonderful-app ./config.babel.js",
     "test:babel-js:jsx": "my-wonderful-app ./config.jsx",
@@ -13,6 +13,7 @@
     "test:coffee:coffee": "my-wonderful-app ./config.coffee",
     "test:coffee:coffee.md": "my-wonderful-app ./config.coffee.md",
     "test:coffee:litcoffee": "my-wonderful-app ./config.litcoffee",
+    "test:ini": "my-wonderful-app ./config.ini",
     "test:toml": "my-wonderful-app ./config.toml"
   },
   "author": "Slune",
@@ -22,6 +23,7 @@
     "@babel/register": "7.8.3",
     "cirru-script": "0.6.2",
     "coffeescript": "2.5.1",
+    "ini": "1.3.5",
     "toml": "3.0.0"
   },
   "devDependencies": {

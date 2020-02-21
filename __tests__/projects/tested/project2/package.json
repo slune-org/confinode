@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "pm-exec run test:babel && pm-exec run test:buble && pm-exec run test:coffee && pm-exec run test:toml",
+    "test": "pm-exec run test:babel && pm-exec run test:buble && pm-exec run test:coffee && pm-exec run test:esm && pm-exec run test:toml",
     "test:babel": "pm-exec run test:babel:babel.js && pm-exec run test:babel:jsx",
     "test:babel:babel.js": "my-wonderful-app ./config.babel.js",
     "test:babel:jsx": "my-wonderful-app ./config.jsx",
@@ -11,6 +11,7 @@
     "test:coffee": "pm-exec run test:coffee:coffee && pm-exec run test:coffee:cjsx",
     "test:coffee:coffee": "my-wonderful-app ./config.coffee",
     "test:coffee:cjsx": "my-wonderful-app ./config.cjsx",
+    "test:esm": "my-wonderful-app ./config.esm.js",
     "test:toml": "my-wonderful-app ./config.toml"
   },
   "author": "Slune",
@@ -19,6 +20,7 @@
     "@iarna/toml": "2.2.3",
     "babel-core": "6.26.3",
     "buble": "0.19.8",
+    "esm": "3.2.25",
     "node-cjsx": "2.0.0",
     "typescript-require": "0.2.10"
   },
