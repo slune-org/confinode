@@ -55,14 +55,9 @@ interface LoadingParameters<T> {
  * @returns True if loading process parameters.
  */
 function isLoadingParameters<T>(
-  parameter: { name?: string; loader: Loader } | LoadingParameters<T>
+  parameter: [Loader, string | undefined] | LoadingParameters<T>
 ): parameter is LoadingParameters<T> {
-  return (
-    'alreadyLoaded' in parameter &&
-    'intermediateResult' in parameter &&
-    'disableCache' in parameter &&
-    'final' in parameter
-  )
+  return !Array.isArray(parameter)
 }
 
 /**
@@ -262,8 +257,8 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     for (const fileDescription of this.parameters.files) {
       const fileAndLoader = yield* this.searchFileAndLoader(folder, fileDescription)
       if (fileAndLoader) {
-        const { fileName, loaderName, loader } = fileAndLoader
-        const result = yield* this.loadConfigFile(fileName, { name: loaderName, loader })
+        const [fileName, loader, loaderName] = fileAndLoader
+        const result = yield* this.loadConfigFile(fileName, [loader, loaderName])
         if (result) {
           this.log(Level.Information, 'loadedConfiguration', fileName)
           return result
@@ -278,12 +273,12 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    *
    * @param folder - The folder in which to search.
    * @param description - The file description.
-   * @returns The found file and loader, or undefined if none.
+   * @returns The found file and loader (and possible loader name), or undefined if none.
    */
   private *searchFileAndLoader(
     folder: string,
     description: FileDescription
-  ): Generator<Request, { fileName: string; loaderName?: string; loader: Loader } | undefined, any> {
+  ): Generator<Request, [string, Loader, string | undefined] | undefined, any> {
     if (isFileBasename(description)) {
       const searchedPath = join(folder, description)
       const folderName = dirname(searchedPath)
@@ -306,7 +301,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
             fileName.slice(baseName.length)
           )
           return isExisting(loader)
-            ? { fileName: join(folderName, fileName), loaderName: loader.name, loader: loader.loader }
+            ? ([join(folderName, fileName), ...loader] as [string, Loader, string | undefined])
             : undefined
         })
         .filter(isExisting)
@@ -319,7 +314,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     } else {
       const fileName = join(folder, description.name)
       if (yield requestFileExits(fileName)) {
-        return { fileName, loader: description.loader }
+        return [fileName, description.loader, undefined] as [string, Loader, string | undefined]
       }
     }
     return undefined
@@ -400,9 +395,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    */
   private *loadConfigFile(
     fileName: string,
-    loaderOrLoading: { name?: string; loader: Loader } | LoadingParameters<T>
+    loaderOrLoading: [Loader, string | undefined] | LoadingParameters<T>
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
-    const loader = isLoadingParameters(loaderOrLoading) ? undefined : loaderOrLoading
+    const givenLoader = isLoadingParameters(loaderOrLoading) ? undefined : loaderOrLoading
     const loadingParameters: LoadingParameters<T> = isLoadingParameters(loaderOrLoading)
       ? loaderOrLoading
       : defaultLoadingParameters
@@ -423,17 +418,18 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       ...this.parameters.modulePaths,
       ...loadingParameters.alreadyLoaded.map(dirname).filter(unique),
     ]
-    const usedLoader = loader ?? this.loaderManager.getLoaderFor(modulePaths, basename(absoluteFile))
+    const usedLoader = givenLoader ?? this.loaderManager.getLoaderFor(modulePaths, basename(absoluteFile))
     if (!usedLoader) {
       throw new ConfinodeError('noLoaderFound', absoluteFile)
     }
-    if (usedLoader.name) {
-      this.log(Level.Trace, 'usingLoader', usedLoader.name)
+    const [loader, loaderName] = usedLoader
+    if (loaderName) {
+      this.log(Level.Trace, 'usingLoader', loaderName)
     }
 
     // Loading file content
     let result = loadingParameters.intermediateResult
-    const content = yield requestLoadConfigFile(absoluteFile, usedLoader.loader)
+    const content = yield requestLoadConfigFile(absoluteFile, loader)
     if (content === undefined) {
       this.log(Level.Trace, 'emptyConfiguration')
     } else {

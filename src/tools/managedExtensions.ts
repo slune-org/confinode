@@ -2,7 +2,7 @@ import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
 // eslint-disable-next-line import/no-internal-modules
-import { loaderDescriptions } from '../Loader/loaders'
+import { extensionsLoaders, loaderDescriptions } from '../Loader/loaders'
 
 if (process.argv.length !== 3) {
   throw new Error('Incorrect argument count — expected only the target file')
@@ -11,15 +11,17 @@ const fileName = resolve(process.argv[2])
 
 writeFileSync(
   fileName,
-  Object.keys(loaderDescriptions)
+  Object.keys(extensionsLoaders)
     .sort()
     .map(
       key =>
         `.${key}:\n${' '.repeat(6)}` +
-        loaderDescriptions[key]
+        extensionsLoaders[key]
           .map(
-            description =>
-              '* ' + description.name + (description.module ? ` (module: “${description.module}”)` : '')
+            name =>
+              '* ' +
+              name +
+              (loaderDescriptions[name].module ? ` (module: “${loaderDescriptions[name].module}”)` : '')
           )
           .join('\n' + ' '.repeat(6))
     )
@@ -27,4 +29,8 @@ writeFileSync(
 )
 
 // eslint-disable-next-line no-console
-console.log(`Written ${Object.keys(loaderDescriptions).length} extensions to ${fileName}`)
+console.log(
+  `Written ${Object.keys(extensionsLoaders).length} extensions for ${
+    Object.keys(loaderDescriptions).length
+  } loaders to ${fileName}`
+)
