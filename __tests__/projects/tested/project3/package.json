@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "pm-exec run test:babel && pm-exec run test:earlgrey && pm-exec run test:iced && pm-exec run test:ini && pm-exec run test:json5",
+    "test": "pm-exec run test:babel && pm-exec run test:earlgrey && pm-exec run test:iced && pm-exec run test:ini && pm-exec run test:json5 && pm-exec run test:wisp",
     "test:babel": "pm-exec run test:babel:babel.js && pm-exec run test:babel:jsx",
     "test:babel:babel.js": "my-wonderful-app ./config.babel.js",
     "test:babel:jsx": "my-wonderful-app ./config.jsx",
@@ -13,7 +13,8 @@
     "test:iced:iced.md": "my-wonderful-app ./config.iced.md",
     "test:iced:liticed": "my-wonderful-app ./config.liticed",
     "test:ini": "my-wonderful-app ./config.ini",
-    "test:json5": "my-wonderful-app ./config.json5"
+    "test:json5": "my-wonderful-app ./config.json5",
+    "test:wisp": "my-wonderful-app ./config.wisp"
   },
   "author": "Slune",
   "license": "MIT",
@@ -22,7 +23,8 @@
     "earlgrey": "0.1.2",
     "iced-coffee-script": "108.0.14",
     "json5": "2.1.1",
-    "node-ini": "1.0.0"
+    "node-ini": "1.0.0",
+    "wisp": "0.13.0"
   },
   "devDependencies": {
     "my-wonderful-app": "file:../../app",
