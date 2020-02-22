@@ -13,7 +13,7 @@ The name of the configuration file provided to the application can be:
 
 Once the corresponding file found, the application will search for loader matching its extension. This loader may require that an additional module is accessible from the current folder.
 
-The list of managed extensions with the required modules can be found in [this file](../extensions.txt). You will see there that some extensions let you choose between multiple possible modules to use.
+The list of managed extensions with the required modules can be found in [this file](../extensions.md). You will see there that some extensions let you choose between multiple possible modules to use.
 
 Once interpreted, your configuration file must return either an object literal or a string.
 

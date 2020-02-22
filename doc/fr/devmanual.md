@@ -140,7 +140,7 @@ Une description de fichiers se présente :
 - soit sous la forme d'un nom de fichier sans extension, mais avec un éventuel nom de sous-dossier (comme par exemple `.gameofthrones/gameofthrones.config`), auquel cas toutes les extensions gérées seront testées ;
 - soit sous la forme d'un littéral d'objet avec la propriété `name` qui contient le nom exact du fichier (extension incluse) et la propriété `loader` qui contient une instance du chargeur à utiliser.
 
-Pour la liste des extensions gérées, voir [ce fichier](../extensions.txt)
+Pour la liste des extensions gérées, voir [ce fichier](../extensions.md)
 
 ## Option « mode »
 
