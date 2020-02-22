@@ -1,12 +1,13 @@
+import { unique } from '../utils'
+
 import Loader from './Loader'
-import { LoaderDescription, loaderDescriptions } from './loaders'
+import { LoaderDescription, extensionsLoaders, loaderDescriptions } from './loaders'
 
 /**
  * Replace the description when loader is loaded.
  */
 interface LoadedLoader {
-  name: string
-  loader: Loader
+  loader__: Loader
 }
 
 /**
@@ -21,7 +22,7 @@ type LoaderOrDescription = LoaderDescription | LoadedLoader
  * @returns True if loaded loader.
  */
 function isLoadedLoader(description: LoaderOrDescription): description is LoadedLoader {
-  return 'loader' in description
+  return 'loader__' in description
 }
 
 /**
@@ -58,26 +59,16 @@ export default class LoaderManager {
   /**
    * Loader descriptions per file type.
    */
-  private readonly descriptions: { [type: string]: LoaderOrDescription[] }
+  private readonly descriptions: { [type: string]: LoaderOrDescription } = { ...loaderDescriptions }
 
   /**
    * The file types, ordered from most precise to least.
    */
-  public readonly availableTypes: ReadonlyArray<string>
+  public readonly availableTypes: ReadonlyArray<string> = Object.keys(extensionsLoaders).sort(
+    (a, b) => b.length - a.length
+  )
 
-  /**
-   * Create the loader manager.
-   *
-   * TODO Add the custom loaders.
-   */
-  public constructor() {
-    // Copy the description because objects will be modified
-    this.descriptions = Object.entries(loaderDescriptions).reduce((prev, [ext, descriptions]) => {
-      prev[ext] = descriptions.map(description => ({ ...description }))
-      return prev
-    }, {} as { [type: string]: LoaderOrDescription[] })
-    this.availableTypes = Object.keys(this.descriptions).sort((a, b) => b.length - a.length)
-  }
+  // TODO Add the custom loaders to public constructor() { }
 
   /**
    * Get the loader for the given file name.
@@ -85,34 +76,37 @@ export default class LoaderManager {
    * @param paths - The extra paths where modules are searched.
    * @param fileName - The (base) name of the file to search.
    * @param extension - The extension of the file if already known.
-   * @returns The most appropriate loader or undefined if none found.
+   * @returns The most appropriate loader and its name, or undefined if none found.
    */
-  public getLoaderFor(paths: string[], fileName: string, extension?: string): LoadedLoader | undefined {
+  public getLoaderFor(paths: string[], fileName: string, extension?: string): [Loader, string] | undefined {
     const foundModuleOrDescription = this.availableTypes
       .filter(availableType =>
-        extension ? availableType === extension : fileName.endsWith('.' + availableType)
+        extension
+          ? availableType === extension
+          : fileName.length > availableType.length + 1 && fileName.endsWith('.' + availableType)
       )
-      .reduce((previous, type) => [...previous, ...this.descriptions[type]], [] as LoaderOrDescription[])
-      .map<[LoaderOrDescription, string | undefined]>(description => [
+      .reduce((previous, type) => [...previous, ...extensionsLoaders[type]], [] as string[])
+      .filter(unique)
+      .map<[string, LoaderOrDescription]>(loaderName => [loaderName, this.descriptions[loaderName]])
+      .map<[string, LoaderOrDescription, string | undefined]>(([loaderName, description]) => [
+        loaderName,
         description,
         isLoadedLoader(description) || !description.module
           ? undefined
           : searchModulePath(description.module, paths),
       ])
-      .find(([description, path]) => isLoadedLoader(description) || !description.module || !!path)
+      .find(([_, description, path]) => isLoadedLoader(description) || !description.module || !!path)
     if (!foundModuleOrDescription) {
       return undefined
     }
-    const [loaderOrDescription, modulePath] = foundModuleOrDescription
+    const [name, loaderOrDescription, modulePath] = foundModuleOrDescription
     if (!isLoadedLoader(loaderOrDescription)) {
-      // Load the loader and mutate the object
+      // Load the loader and update the object
       const required: any = modulePath ? require(modulePath) : undefined
-      const loader = new loaderOrDescription.Loader(required)
-      ;((loaderOrDescription as unknown) as LoadedLoader).loader = loader
-      'module' in loaderOrDescription && delete loaderOrDescription.module
-      delete loaderOrDescription.Loader
+      this.descriptions[name] = { loader__: new loaderOrDescription.Loader(required) }
     }
-    assertIsLoadedLoader(loaderOrDescription)
-    return loaderOrDescription
+    const loadedLoader = this.descriptions[name]
+    assertIsLoadedLoader(loadedLoader)
+    return [loadedLoader.loader__, name]
   }
 }

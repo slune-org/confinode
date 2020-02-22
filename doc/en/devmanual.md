@@ -140,7 +140,7 @@ A file description is:
 - either a file name without extension, but with a sub-folder if needed (e.g. `.gameofthrones/gameofthrones.config`), for which all managed extensions will be tested;
 - either an object literal with the `name` property containing the exact name of the file (including extension) and a `loader` property containing an instance of the loader to use.
 
-For a list of managed extensions, see [this file](../extensions.txt)
+For a list of managed extensions, see [this file](../extensions.md)
 
 ## “mode” option
 

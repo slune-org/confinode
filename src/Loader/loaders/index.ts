@@ -3,12 +3,12 @@ import { LoaderDescription as DefinitionLoaderDescription, LoaderType } from '..
 /**
  * Loader descriptions, automatically filled by `ts-transform-auto-require`.
  */
-const loaders: { [key: string]: LoaderType<any> } = {}
+const loaders: { [name: string]: LoaderType<any> } = {}
 
 /**
  * The description, as used out of the loaders.
  */
-export type LoaderDescription = { name: string } & Omit<DefinitionLoaderDescription, 'filetypes'>
+export type LoaderDescription = Omit<DefinitionLoaderDescription, 'filetypes'>
 
 /**
  * Indicate if the description is a loader description.
@@ -23,28 +23,37 @@ function isLoaderDescription(
 }
 
 /**
- * Create the loader descriptions. It is an object literal where keys are extensions and values are array of
- * loader descriptions managing the extension.
+ * The loader descriptions is an object literal where keys are loader names and values are descriptions of
+ * the loader, i.e. module name and loader constructor.
  */
-export const loaderDescriptions = Object.entries(loaders)
-  .map(([name, description]) => ({ ...description, name }))
-  .filter(isLoaderDescription)
-  .reduce((previous, loaderDescription) => {
-    const { filetypes, ...description } = loaderDescription
-    new Array<string>().concat(filetypes).forEach(filetype => {
-      if (!filetype) {
-        throw new Error('Empty file type is forbidden')
-      }
-      if (!(filetype in previous)) {
-        previous[filetype] = []
-      }
-      previous[filetype].push(description)
-    })
-    return previous
-  }, {} as { [type: string]: LoaderDescription[] })
-// Ensure objects will not be modified
-Object.values(loaderDescriptions).forEach(descriptions => {
-  descriptions.forEach(description => Object.freeze(description))
-  Object.freeze(descriptions)
-})
+export const loaderDescriptions: { [name: string]: LoaderDescription } = {}
+
+/**
+ * The extensions loaders is an object where keys are extensions and values are array of loader names.
+ */
+export const extensionsLoaders = Object.entries(
+  Object.entries(loaders)
+    .map(([name, description]) => ({ ...description, name }))
+    .filter(isLoaderDescription)
+    .reduce((previous, loaderDescription) => {
+      const { filetypes, name, ...description } = loaderDescription
+      loaderDescriptions[name] = Object.freeze(description)
+      new Array<string>().concat(filetypes).forEach(filetype => {
+        if (!filetype) {
+          throw new Error('Empty file type is forbidden')
+        }
+        if (!(filetype in previous)) {
+          previous[filetype] = []
+        }
+        previous[filetype].push(name)
+      })
+      return previous
+    }, {} as { [type: string]: string[] })
+).reduce((previous, [extension, descriptionNames]) => {
+  previous[extension] = Object.freeze(descriptionNames)
+  return previous
+}, {} as { [type: string]: ReadonlyArray<string> })
+
+// Prevent objects from being modified
 Object.freeze(loaderDescriptions)
+Object.freeze(extensionsLoaders)

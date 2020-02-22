@@ -3,7 +3,7 @@ import { promisify } from 'util'
 
 import Loader, { LoaderDescription } from '../Loader'
 
-interface Toml {
+interface Ini {
   parse(input: string): unknown
 }
 
@@ -11,15 +11,15 @@ interface Toml {
  * Loader implementation.
  */
 class LoaderImplementation implements Loader {
-  public constructor(private readonly toml: Toml) {}
+  public constructor(private readonly ini: Ini) {}
 
   public load(fileName: string) {
-    return this.toml.parse(readFileSync(fileName, { encoding: 'utf8' }))
+    return this.ini.parse(readFileSync(fileName, { encoding: 'utf8' }))
   }
 
   public async asyncLoad(fileName: string) {
     const content = await promisify(readFile)(fileName, { encoding: 'utf8' })
-    return this.toml.parse(content)
+    return this.ini.parse(content)
   }
 }
 
@@ -27,8 +27,8 @@ class LoaderImplementation implements Loader {
  * Loader description.
  */
 const description: LoaderDescription = {
-  filetypes: 'toml',
+  filetypes: 'ini',
   Loader: LoaderImplementation,
-  module: 'toml',
+  module: 'ini',
 }
 export default description

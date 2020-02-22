@@ -13,7 +13,7 @@ Le nom du fichier de configuration que vous indiquez à votre application peut �
 
 Une fois le fichier correspondant trouvé, l'application va rechercher un chargeur correspondant à son extension. Ce chargeur peut requérir qu'un module supplémentaire soit accessible depuis le dossier courant.
 
-La liste des extensions gérées avec les modules requis se trouve dans [ce fichier](../extensions.txt). Vous y constaterez que certaines extensions vous laissent le choix entre plusieurs possibilités de modules à utiliser.
+La liste des extensions gérées avec les modules requis se trouve dans [ce fichier](../extensions.md). Vous y constaterez que certaines extensions vous laissent le choix entre plusieurs possibilités de modules à utiliser.
 
 Une fois interprété, votre fichier de configuration doit renvoyer soit un littéral d'objet, soit une chaine de caractères.
 
