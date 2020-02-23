@@ -4,7 +4,7 @@ import { promisify } from 'util'
 import Loader, { LoaderDescription } from '../../Loader'
 
 interface Toml {
-  parse: { (input: string): any; async: (input: string) => Promise<any> }
+  parse: { (input: string): unknown; async: (input: string) => Promise<unknown> }
 }
 
 /**

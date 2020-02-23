@@ -108,7 +108,7 @@ Lorsque _confinode_ recherche un fichier de configuration, si aucun fichier corr
 
 ## Option « modulePaths »
 
-Les modules des chargeurs seront toujours recherchés par rapport au dossier courant et par rapport aux fichiers de configurations en cours de lecture. Dans le cas où votre application importe certains modules, vous voudrez peut-être ajouter son dossier. L'option `modulePaths` permet de donner une liste de dossier supplémentaires qui seront fournis à `require.resolve()` pour rechercher les modules.
+Les modules des chargeurs seront toujours recherchés par rapport au dossier courant et par rapport aux fichiers de configurations en cours de lecture. Dans le cas où votre application importe certains modules, vous voudrez peut-être ajouter son dossier. L'option `modulePaths` permet de donner un simple ou un tableau de dossiers supplémentaires qui seront fournis à `require.resolve()` pour rechercher les modules.
 
 Notez que le dossier courant est systématiquement ajouté et qu'il n'est donc pas utile de le préciser ici.
 
@@ -141,6 +141,28 @@ Une description de fichiers se présente :
 - soit sous la forme d'un littéral d'objet avec la propriété `name` qui contient le nom exact du fichier (extension incluse) et la propriété `loader` qui contient une instance du chargeur à utiliser.
 
 Pour la liste des extensions gérées, voir [ce fichier](../extensions.md)
+
+## Option « customLoaders »
+
+La liste de chargeurs par défaut incluse dans _confinode_ se veut relativement exhaustive. Il peut toutefois y avoir des cas où vous souhaitez utiliser des types de fichiers (très spécifiques) qui ne sont pas (encore) inclus dans _confinode_. Dans ce cas, vous pouvez [créer les chargeurs appropriés](#chargeur) et les spécifier dans l'option `customLoaders`.
+
+Cette option est un litéral d'objet qui prend comme clés le nom que vous souhaitez donner au chargeur. Afin de ne pas écraser les chargeurs par défaut, le nom que vous spécifiez sera préfixé par le nom de l'application suivi du signe `#`. En valeur, l'objet prend un autre litéral d'objet respectant l'interface [LoaderDescription](../../src/Loader/Loader.ts), c'est-à-dire contenant :
+
+- une entrée `filetypes` avec l'extension ou les extensions gérées par ce chargeur (**sans** le `.` qui précède) sous la forme d'une chaine de caractères ou d'un tableau de chaines de caractères ;
+- une entrée optionnelle `module` contenant le nom d'un module (ou sous-module) à requérir pour que le chargeur fonctionne — si ce module n'est pas trouvé, le chargeur sera considéré comme inexistant ;
+- une entrée `Loader` contenant la fonction de construction (le nom de la classe) du chargeur.
+
+Si les chargeurs que vous indiquez dans cette option gèrent les mêmes extensions que des chargeurs par défaut, les premiers remplaceront les seconds, qui ne seront donc plus utilisables. Si vous préférez ajouter vos chargeurs à ceux par défaut, vous devrez les fusionner vous même :
+
+```javascript
+import { defaultLoaders } from 'confinode/Loader/loaders'
+import MyCustomLoader from './MyCustomLoader'
+
+const customLoaders = { ...defaultLoaders, { myCustomLoader: { filetypes: ['jsx', 'tsx'], Loader: MyCustomLoader } } }
+const confinode = new Confinode('gameofthrones', description, { customLoaders })
+```
+
+Notez que dans ce cas, tous les chargeurs verront leurs noms préfixés par le nom de l'application suivi du signe `#`. Il vous appartient donc de veiller à ne pas donner à votre chargeur un nom qui entre en conflit avec le nom d'un chargeur existant.
 
 ## Option « mode »
 
@@ -210,4 +232,25 @@ Pour alléger l'écriture, les descriptions de configuration livrés ne sont pas
 
 ## Chargeur
 
-:construction: TODO: WIP
+Un chargeur est une classe dont le constructeur prend un paramètre de type inconnu. Il s'agit de l'éventuel module requis pour faire fonctionner le chargeur ou, à défaut, de la valeur `undefined`. Lorsque _confinode_ devra charger un fichier dont l'extension est gérée par le chargeur, la bibliothèque commencera par requérir l'éventuel module, puis, en cas de succès, appellera le constructeur du chargeur en lui donnant le module chargé comme paramètre.
+
+L'instance du chargeur:
+
+- doit obligatoirement posséder la méthode `load(fileName)` pour charger le fichier de façon synchrone et renvoyer le résultat ou `undefined` s'il n'y a pas de résultat ;
+- peut éventuellement posséder la méthode `asyncLoad(fileName)` pour charger le fichier de façon asynchrone et renvoyer une promesse contenant le résultat ou `undefined` s'il n'y a pas de résultat.
+
+Notez que ces méthodes peuvent renvoyer `undefined` **lorsqu'il n'y a pas de résultat** (cas typique du fichier `package.json` qui ne contient pas d'entrée pour l'application). Elles ne devraient par contre jamais renvoyer `undefined` en cas d'erreur sous peine que l'erreur soit ignorée silencieusement. En cas d'erreur, les méthodes doivent lever une exception.
+
+Si vous utilisez _TypeScript_, vos chargeurs devraient implémenter l'interface [Loader](../../src/Loader/Loader.ts).
+
+# FAQ
+
+## Comment faire pour que mon application supporte nativement le format [n'importe] ?
+
+Si le format que vous voulez supporter nativement n'est pas du tout géré par _confinode_, vous serez contraint d'[écrire un chargeur](#chargeur) et de l'[ajouter](#option-customloaders) dans les options du constructeur de _confinode_.
+
+Mais si vous voulez simplement, par exemple, que votre application supporte le format `TOML` sans que l'utilisateur n'ait de manipulation particulière à faire, il vous suffit d'ajouter l'un des modules gérant le format en tant que dépendance de votre application et d'ajouter le répertoire de votre application à l'option `modulePaths` du constructeur :
+
+```javascript
+const confinode = new Confinode('gameofthrones', description, { modulePaths: __dirname })
+```

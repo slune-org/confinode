@@ -1,4 +1,3 @@
-export { noPackageJson } from './FileDescription'
 export { default as Confinode, ConfinodeOptions } from './Confinode'
 export {
   default as ConfigDescription,
@@ -15,3 +14,6 @@ export {
   singleOrArray,
   stringItem,
 } from './ConfigDescription'
+export { default as FileDescription, noPackageJson } from './FileDescription'
+export { default as Loader } from './Loader'
+export { Level, Message } from './messages'

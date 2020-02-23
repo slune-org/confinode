@@ -5,6 +5,7 @@ import { join, resolve } from 'path'
 import { booleanItem, literal, stringItem, anyItem } from '../ConfigDescription'
 import { Message } from '../messages'
 import FileDescription, { noPackageJson } from '../FileDescription'
+import Loader from '../Loader'
 import Confinode from './Confinode'
 import ConfinodeOptions from './ConfinodeOptions'
 
@@ -33,6 +34,16 @@ const complexConfigurationDescription = literal<ComplexConfig>({
   d: stringItem(),
   e: stringItem(),
 })
+
+// A fake loader
+class FakeLoader implements Loader {
+  public load(fileName: string): unknown | undefined {
+    return {
+      found: true,
+      where: fileName,
+    }
+  }
+}
 
 // Test directories
 const testDir = resolve(__dirname, '../../__tests__')
@@ -107,7 +118,7 @@ describe('Confinode', function() {
 
         it('should find appropriate file', async function() {
           const promise = confinode.search(moduleDir)
-          await expect(promise).to.eventually.not.be.undefined
+          await expect(promise).not.to.eventually.be.undefined
           const result = await promise
           expect(result?.configuration.found).to.be.true
           expect(result?.configuration.where).to.equal('package.json')
@@ -122,7 +133,7 @@ describe('Confinode', function() {
 
         it('should load requested file', async function() {
           const promise = confinode.load(join(testDir, '.gonewiththewindrc.ts'))
-          await expect(promise).to.eventually.not.be.undefined
+          await expect(promise).not.to.eventually.be.undefined
           const result = await promise
           expect(result?.configuration.found).to.be.true
           expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
@@ -164,7 +175,7 @@ describe('Confinode', function() {
 
       it('should find appropriate file asynchronously', async function() {
         const promise = confinode.search.async(moduleDir)
-        await expect(promise).to.eventually.not.be.undefined
+        await expect(promise).not.to.eventually.be.undefined
         const result = await promise
         expect(result?.configuration.found).to.be.true
         expect(result?.configuration.where).to.equal('package.json')
@@ -179,7 +190,7 @@ describe('Confinode', function() {
 
       it('should load requested file asynchronously', async function() {
         const promise = confinode.load.async(join(testDir, '.gonewiththewindrc.ts'))
-        await expect(promise).to.eventually.not.be.undefined
+        await expect(promise).not.to.eventually.be.undefined
         const result = await promise
         expect(result?.configuration.found).to.be.true
         expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
@@ -257,7 +268,7 @@ describe('Confinode', function() {
       } as { [name: string]: ConfinodeOptions<'async'> }).forEach(([name, config]) => {
         it(`should find configuration file when option is ${name}`, async function() {
           const confinode = new Confinode('gonewiththewind', configurationDescription, config)
-          await expect(confinode.search(moduleDir)).to.eventually.not.be.undefined
+          await expect(confinode.search(moduleDir)).not.to.eventually.be.undefined
         })
       })
 
@@ -274,7 +285,7 @@ describe('Confinode', function() {
           searchStop: moduleDir,
           logger: ignoreLogs,
         })
-        await expect(confinode.load(join(testDir, '.gonewiththewindrc.ts'))).to.eventually.not.be.undefined
+        await expect(confinode.load(join(testDir, '.gonewiththewindrc.ts'))).not.to.eventually.be.undefined
       })
 
       it('should stop searching when reaching root', async function() {
@@ -295,10 +306,10 @@ describe('Confinode', function() {
       it('should find external module if external search path', async function() {
         const confinode = new Confinode('titanic', configurationDescription, {
           logger: ignoreLogs,
-          modulePaths: [join(testDir, 'projects', 'tested', 'project1')],
+          modulePaths: join(testDir, 'projects', 'tested', 'project1'),
         })
         const promise = confinode.load(join(moduleDir, 'modulePaths.toml'))
-        await expect(promise).to.eventually.not.be.undefined
+        await expect(promise).not.to.eventually.be.undefined
         const result = await promise
         expect(result?.configuration.found).to.be.true
         expect(result?.configuration.where).to.equal('modulePaths.toml')
@@ -332,7 +343,7 @@ describe('Confinode', function() {
     describe('#files', function() {
       it('should find all configuration files with default options', async function() {
         const titanic = new Confinode('titanic', configurationDescription, { logger: ignoreLogs })
-        await expect(titanic.search(moduleDir)).to.eventually.not.be.undefined
+        await expect(titanic.search(moduleDir)).not.to.eventually.be.undefined
         const starwars = new Confinode('starwars', configurationDescription, { logger: ignoreLogs })
         const starwarsConfig = await starwars.search(moduleDir)
         expect(starwarsConfig?.configuration.where).to.equal('package.json')
@@ -369,6 +380,39 @@ describe('Confinode', function() {
         })
         const titanicResult = await titanic.search(moduleDir)
         expect(titanicResult?.configuration.where).to.equal('.gonewiththewindrc.ts')
+      })
+    })
+
+    describe('#customLoaders', function() {
+      it('should not load special file if no custom loader', async function() {
+        const confinode = new Confinode('loaders', configurationDescription, {
+          logger: ignoreLogs,
+        })
+        await expect(confinode.load(join(moduleDir, 'special.special'))).to.eventually.be.undefined
+      })
+
+      it('should load special file with custom loader', async function() {
+        const confinode = new Confinode('loaders', configurationDescription, {
+          logger: catchLogs,
+          customLoaders: { fake: { filetypes: 'special', Loader: FakeLoader } },
+        })
+        storedLogs = []
+        const fileName = join(moduleDir, 'special.special')
+        const result = await confinode.load(fileName)
+        expect(result).not.to.be.undefined
+        expect(result?.configuration.where).to.equal(fileName)
+        expect(storedLogs.find(msg => msg.messageId === 'usingLoader')).to.match(/ loaders#fake /)
+      })
+
+      it('should replace normal loader', async function() {
+        const confinode = new Confinode('loaders', configurationDescription, {
+          logger: ignoreLogs,
+          customLoaders: { fake: { filetypes: 'js', Loader: FakeLoader } },
+        })
+        const fileName = join(moduleDir, '.theexorcist', 'theexorcist.config.js')
+        const result = await confinode.load(fileName)
+        expect(result).not.to.be.undefined
+        expect(result?.configuration.where).to.equal(fileName)
       })
     })
   })
@@ -419,25 +463,25 @@ describe('Confinode', function() {
 
     it('should load given absolute configuration file', async function() {
       await confinode.load(join(moduleDir, '.starwarsrc.js'))
-      await expect(confinode.load(join(moduleDir, '.starwarsrc.js'))).to.eventually.not.be.undefined
+      await expect(confinode.load(join(moduleDir, '.starwarsrc.js'))).not.to.eventually.be.undefined
     })
 
     it('should load given relative configuration file', async function() {
-      await expect(anyConfinode.load('./package.json')).to.eventually.not.be.undefined
+      await expect(anyConfinode.load('./package.json')).not.to.eventually.be.undefined
       const loadedFile = storedLogs.find(message => message.messageId === 'loadingFile')
       expect(loadedFile).not.to.be.undefined
       expect(loadedFile?.toString()).to.match(/\/package.json$/)
     })
 
     it('should load module main file', async function() {
-      await expect(anyConfinode.load('mocha')).to.eventually.not.be.undefined
+      await expect(anyConfinode.load('mocha')).not.to.eventually.be.undefined
       const loadedFile = storedLogs.find(message => message.messageId === 'loadingFile')
       expect(loadedFile).not.to.be.undefined
       expect(loadedFile?.toString()).to.match(/\/node_modules\/([^/]+\/)*mocha\/index.js$/)
     })
 
     it('should load internal module file', async function() {
-      await expect(anyConfinode.load('mocha/lib/mocha.js')).to.eventually.not.be.undefined
+      await expect(anyConfinode.load('mocha/lib/mocha.js')).not.to.eventually.be.undefined
       const loadedFile = storedLogs.find(message => message.messageId === 'loadingFile')
       expect(loadedFile).not.to.be.undefined
       expect(loadedFile?.toString()).to.match(/\/node_modules\/([^/]+\/)*mocha\/lib\/mocha.js$/)
@@ -455,6 +499,11 @@ describe('Confinode', function() {
 
     it('should display an error if no loader found for file', async function() {
       await expect(confinode.load(join(moduleDir, 'noloader'))).to.eventually.be.undefined
+      expect(storedLogs.map(message => message.messageId)).to.include('noLoaderFound')
+    })
+
+    it('should not find a loader for “extension only” file', async function() {
+      await expect(confinode.load(join(moduleDir, '.yaml'))).to.eventually.be.undefined
       expect(storedLogs.map(message => message.messageId)).to.include('noLoaderFound')
     })
 

@@ -108,7 +108,7 @@ When _confinode_ searches for a configuration file, if no matching file is found
 
 ## “modulePaths” option
 
-Loader modules are always searched based on current folder and on currently being read configuration files. In the event of your application importing some modules, you may want to add its folder. The `modulePaths` options accepts a list of additional folders which will be provided to `require.resolve()` to search for modules.
+Loader modules are always searched based on current folder and on currently being read configuration files. In the event of your application importing some modules, you may want to add its folder. The `modulePaths` options accepts a single or an array of additional folders which will be provided to `require.resolve()` to search for modules.
 
 Note that the current folder is always added and it is therefore useless to give it here.
 
@@ -141,6 +141,28 @@ A file description is:
 - either an object literal with the `name` property containing the exact name of the file (including extension) and a `loader` property containing an instance of the loader to use.
 
 For a list of managed extensions, see [this file](../extensions.md)
+
+## “customLoaders” option
+
+The default loaders list included in _confinode_ wants to be somehow exhaustive. There may anyway be cases where you want to use (very specific) file types which are not (yet) included in _confinode_. In this case, you can [create appropriate loaders](#loader) and specify them in the `customLoaders` options.
+
+This option is an object literal which takes the name you wish to give to the loader as key. In order not to overwrite default loaders, the name you give will be prefixed by the application name followed by the `#` character. As value, the object takes another object literal conforming to the [LoaderDescription](../../src/Loader/Loader.ts) interface, i.e. containing:
+
+- a `filetypes` entry with the extension or extensions managed by this loader (**without** the preceding `.` character) as a string or string array;
+- an optional `module` entry containing the name of a module (or sub-module) to require for the loader to work — if the module is not found, the loader will be considered inexistent;
+- a `Loader` entry containing the constructor function (the class name) of the loader.
+
+If the loaders specified in this option manage the same extensions as default loaders, the former will replace the latter, which will then be no more usable. If you prefer adding your loaders to the default ones, you have to merge them by yourself:
+
+```javascript
+import { defaultLoaders } from 'confinode/Loader/loaders'
+import MyCustomLoader from './MyCustomLoader'
+
+const customLoaders = { ...defaultLoaders, { myCustomLoader: { filetypes: ['jsx', 'tsx'], Loader: MyCustomLoader } } }
+const confinode = new Confinode('gameofthrones', description, { customLoaders })
+```
+
+Note that in this case, all loaders will have their name prefixed with the application name followed by the `#` character. It is therefore up to you to take care not to give your loader a name that conflicts with an existing loader.
 
 ## “mode” option
 
@@ -206,8 +228,29 @@ For _TypeScript_ users, description classes should implement the [ConfigDescript
 
 As examples, you can have a look at the [ConfigDescription](../../src/ConfigDescription) folder to see how current descriptions are written.
 
-In order to lighten the writing, delivered configuration descriptions are not directly exported because the are created through helper functions (see [this file](../../src/ConfigDescription/helpers.ts)). Of course, you can do the same for your own configuration descriptions.
+In order to lighten the writing, delivered configuration descriptions are not directly exported because they are created through helper functions (see [this file](../../src/ConfigDescription/helpers.ts)). Of course, you can do the same for your own configuration descriptions.
 
 ## Loader
 
-:construction: TODO: WIP
+A loader is a class for which the constructor takes a parameter of an unknown type. It is the possible module required to make the loader work or, if no module, the `undefined` value. When _confinode_ will have to load a file which extension is managed by the loader, the library will first require the possible module, then, if successful, will call the loader constructor, giving it the loaded module as parameter.
+
+The loader instance:
+
+- must have the `load(fileName)` method to synchronously load the file and return the result or `undefined` if no result;
+- can have the `asyncLoad(fileName)` method to asynchronously load the file and return a promise containing the result or `undefined` if no result.
+
+Note that these methods might return `undefined` **when there is no result** (typically for the `package.json` file without an entry for the application). On the other hand, they must never return `undefined` in case of an error otherwise the error will be silently ignored. In case of error, the methods should throw an exception.
+
+For _TypeScript_ users, loader classes should implement the [Loader](../../src/Loader/Loader.ts) interface.
+
+# FAQ
+
+## How can I make my application support the format [whichever] out-of-the-box?
+
+If the format you want to support out-of-the-box is not managed at all by _confinode_, you will have to [write a loader](#loader) and to [add](#customloaders-option) it to _confinode_ constructor options.
+
+But if you just want, for example, that your application support the `TOML` format without the need for the user to have any manipulation to do, you just have to add one of the modules managing the format as a dependency of your application and to add your application folder to the constructor `modulePaths` option:
+
+```javascript
+const confinode = new Confinode('gameofthrones', description, { modulePaths: __dirname })
+```

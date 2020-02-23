@@ -46,3 +46,9 @@ It is possible to write a configuration file which inherit from one or more othe
 In order to do that, you have to add to your configuration object a key named `extends` which contains either directly the name of the file to inherit from or an array of file names to inherit from. If you inherit from multiple files, they are taken in the specified order, the data of the latter can replace the one of the formers.
 
 Note that if you give a relative file name in your `extends` entry, the file will be searched relative to the place of the current configuration file.
+
+# FAQ
+
+## Is it possible to create a module with my configuration?
+
+It is of course possible to put a configuration file of any format in an external module. If this file is indicated as the main entry of the module (`main` key in `package.json` file), you will just have to give the module name to the application (using an indirection, for example). If not, you will have to indicate the file path inside the module, which allow to put many configurations for many applications inside the same module. For example, in order to load the `starwars.yaml` file which is inside the `config` folder of the `corporate-cfg` module, you will need to give: `corporate-cfg/config/starwars.yaml`.

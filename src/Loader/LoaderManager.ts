@@ -1,7 +1,7 @@
 import { unique } from '../utils'
 
 import Loader from './Loader'
-import { LoaderDescription, extensionsLoaders, loaderDescriptions } from './loaders'
+import { LoaderDescription, analyzeLoaders, extensionsLoaders, loaderDescriptions } from './loaders'
 
 /**
  * Replace the description when loader is loaded.
@@ -57,18 +57,35 @@ function searchModulePath(moduleName: string, paths: string[]): string | undefin
  */
 export default class LoaderManager {
   /**
-   * Loader descriptions per file type.
+   * Loader descriptions per description name.
    */
-  private readonly descriptions: { [type: string]: LoaderOrDescription } = { ...loaderDescriptions }
+  private readonly descriptions: { [name: string]: LoaderOrDescription }
+
+  /**
+   * The loaders for each extension.
+   */
+  private readonly extensionsLoaders: { [type: string]: ReadonlyArray<string> }
 
   /**
    * The file types, ordered from most precise to least.
    */
-  public readonly availableTypes: ReadonlyArray<string> = Object.keys(extensionsLoaders).sort(
-    (a, b) => b.length - a.length
-  )
+  public readonly availableTypes: ReadonlyArray<string>
 
-  // TODO Add the custom loaders to public constructor() { }
+  /**
+   * Create the loader manager.
+   *
+   * @param applicationName - The application name, used to name custom loaders.
+   * @param customLoaders - The custom loaders which will be added/replace the provided ones.
+   */
+  public constructor(applicationName: string, customLoaders: { [name: string]: LoaderDescription }) {
+    const [customDescription, customExtensionsLoaders] = analyzeLoaders(
+      customLoaders,
+      applicationName + '#'
+    )
+    this.descriptions = { ...loaderDescriptions, ...customDescription }
+    this.extensionsLoaders = { ...extensionsLoaders, ...customExtensionsLoaders }
+    this.availableTypes = Object.keys(this.extensionsLoaders).sort((a, b) => b.length - a.length)
+  }
 
   /**
    * Get the loader for the given file name.
@@ -85,7 +102,7 @@ export default class LoaderManager {
           ? availableType === extension
           : fileName.length > availableType.length + 1 && fileName.endsWith('.' + availableType)
       )
-      .reduce((previous, type) => [...previous, ...extensionsLoaders[type]], [] as string[])
+      .reduce((previous, type) => [...previous, ...this.extensionsLoaders[type]], [] as string[])
       .filter(unique)
       .map<[string, LoaderOrDescription]>(loaderName => [loaderName, this.descriptions[loaderName]])
       .map<[string, LoaderOrDescription, string | undefined]>(([loaderName, description]) => [
