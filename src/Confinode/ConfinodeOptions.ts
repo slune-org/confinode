@@ -1,6 +1,7 @@
 import { homedir } from 'os'
 
 import FileDescription from '../FileDescription'
+import { LoaderDescription } from '../Loader'
 import { Level, Message } from '../messages'
 
 /**
@@ -20,10 +21,10 @@ interface ConfinodeOptionsWithoutMode {
   /**
    * Extra paths to search for loader modules.
    */
-  modulePaths: string[]
+  modulePaths: string | string[]
 
   /**
-   * The logger for non error messages. Default logger will simply display warnings to the console.
+   * The logger. Default logger will simply display warnings to the console.
    */
   logger: (message: Message<any>) => void
 
@@ -31,6 +32,11 @@ interface ConfinodeOptionsWithoutMode {
    * Configuration file names, or default file names filter.
    */
   files: FileDescription[] | Array<(files: FileDescription[]) => FileDescription[]>
+
+  /**
+   * The custom loaders, if needed.
+   */
+  customLoaders: { [name: string]: LoaderDescription }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -64,14 +70,15 @@ export function filesAreFilters(
 export const defaultConfig: Partial<ConfinodeOptionsWithoutMode> = {
   cache: true,
   searchStop: homedir(),
-  modulePaths: [],
   logger: defaultLogger,
+  customLoaders: {},
 }
 
 /**
  * The definitive options, ready to be used by the application.
  */
 export interface ConfinodeParameters extends ConfinodeOptionsWithoutMode {
+  modulePaths: string[]
   files: FileDescription[]
   mode: 'async' | 'sync'
 }

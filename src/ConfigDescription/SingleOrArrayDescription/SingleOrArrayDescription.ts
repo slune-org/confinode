@@ -1,4 +1,5 @@
 import ConfinodeResult from '../../ConfinodeResult'
+import { ensureArray } from '../../utils'
 import ArrayDescription from '../ArrayDescription'
 import { ParserContext } from '../ConfigDescription'
 
@@ -7,6 +8,6 @@ import { ParserContext } from '../ConfigDescription'
  */
 export default class SingleOrArrayDescription<T> extends ArrayDescription<T> {
   public parse(data: unknown, context: ParserContext<T[]>): ConfinodeResult<T[]> | undefined {
-    return super.parse(Array.isArray(data) ? data : [data], context)
+    return super.parse(ensureArray(data), context)
   }
 }

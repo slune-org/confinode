@@ -20,3 +20,13 @@ export function pushIfNew<T>(array: T[], item: T | undefined, predicate: (arrayI
 export function unique<T>(value: T, index: number, array: T[]): boolean {
   return array.indexOf(value) === index
 }
+
+/**
+ * Ensure that the given parameter is an array. If not, put it in an array.
+ *
+ * @param value - Either an array or a single item to convert.
+ * @returns The parameter in an array.
+ */
+export function ensureArray<T>(value: T | T[]): T[] {
+  return new Array<T>().concat(value)
+}

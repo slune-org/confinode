@@ -46,3 +46,9 @@ Il est possible d'écrire un fichier de configuration qui hérite d'un ou plusie
 Pour ce faire, vous devez ajouter à votre objet de configuration une entrée `extends` qui contiendra soit directement le nom du fichier à hériter, soit un tableau de noms des fichiers à hériter. Si vous héritez de plusieurs fichiers, ceux-ci sont pris en compte dans l'ordre spécifié, les données du dernier pouvant écraser celles des précédents.
 
 Notez que si vous indiquez un nom de fichier relatif dans votre entrée `extends`, le fichier sera recherché par rapport à l'emplacement du fichier de configuration actuel.
+
+# FAQ
+
+## Est-il possible de créer un module contenant ma configuration ?
+
+Il est bien sûr possible de mettre un fichier de configuration de n'importe quel format dans un module externe. Si ce fichier est référencé comme étant l'entrée principale du module (entrée `main` du fichier `package.json`), il suffira de donner le nom du module à l'application (par exemple, en utilisant une indirection). Dans le cas contraire, il faudra préciser le chemin du fichier à l'intérieur du module, ce qui peut d'ailleurs permettre de mettre plusieurs configurations pour plusieurs applications dans le même module. Par exemple, pour charger le fichier `starwars.yaml`, se trouvant dans le dossier `config` du module `corporate-cfg`, vous devrez indiquer : `corporate-cfg/config/starwars.yaml`.

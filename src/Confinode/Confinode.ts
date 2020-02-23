@@ -5,7 +5,7 @@ import ConfinodeError from '../ConfinodeError'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
 import Loader, { LoaderManager } from '../Loader'
 import { Level, Message, MessageId, MessageParameters } from '../messages'
-import { isExisting, pushIfNew, unique } from '../utils'
+import { ensureArray, isExisting, pushIfNew, unique } from '../utils'
 import ConfinodeOptions, { ConfinodeParameters, defaultConfig, filesAreFilters } from './ConfinodeOptions'
 import ConfinodeResult, { ResultFile } from '../ConfinodeResult'
 import {
@@ -100,7 +100,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
 
   private readonly parameters: ConfinodeParameters
 
-  private readonly loaderManager: LoaderManager = new LoaderManager()
+  private readonly loaderManager: LoaderManager
 
   private folderCache: { [folder: string]: string[] } = {}
   private contentCache: { [path: string]: ConfinodeResult<T> | undefined } = {}
@@ -122,7 +122,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     )
 
     // Prepare options
-    this.parameters.modulePaths = this.parameters.modulePaths.map(path => resolve(process.cwd(), path))
+    this.parameters.modulePaths = ensureArray(options?.modulePaths ?? []).map(path =>
+      resolve(process.cwd(), path)
+    )
     this.parameters.modulePaths.unshift(process.cwd())
     if (!options?.files || filesAreFilters(options.files)) {
       this.parameters.files = defaultFiles(name)
@@ -156,6 +158,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       _load.async = (file: string) => this.asyncLoad(file)
     }
     this.load = _load as LoadFunctionType<T, M>
+
+    // Create loader manager
+    this.loaderManager = new LoaderManager(name, this.parameters.customLoaders)
   }
 
   /**
@@ -445,7 +450,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
 
         // Inheritance
         if (isExtending(content)) {
-          const parentConfigs = typeof content.extends === 'string' ? [content.extends] : content.extends
+          const parentConfigs = ensureArray(content.extends)
           delete content.extends
           let disableCache = loadingParameters.disableCache
           for (const parentConfig of parentConfigs) {
