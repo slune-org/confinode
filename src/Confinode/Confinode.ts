@@ -5,7 +5,7 @@ import ConfinodeError from '../ConfinodeError'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
 import Loader, { LoaderManager } from '../Loader'
 import { Level, Message, MessageId, MessageParameters } from '../messages'
-import { ensureArray, isExisting, pushIfNew, unique } from '../utils'
+import { Cache, ensureArray, isExisting, pushIfNew, unique } from '../utils'
 import ConfinodeOptions, { ConfinodeParameters, defaultConfig, filesAreFilters } from './ConfinodeOptions'
 import ConfinodeResult, { ResultFile } from '../ConfinodeResult'
 import {
@@ -102,8 +102,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
 
   private readonly loaderManager: LoaderManager
 
-  private folderCache: { [folder: string]: string[] } = {}
-  private contentCache: { [path: string]: ConfinodeResult<T> | undefined } = {}
+  private readonly folderCache = new Cache<string[]>(60 * 1000, 18)
+  private readonly contentCache = new Cache<unknown>(300 * 1000, 24)
+  private readonly configCache = new Cache<ConfinodeResult<T> | undefined>(300 * 1000, 36)
 
   public constructor(
     public readonly name: string,
@@ -167,8 +168,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Clear the cache.
    */
   public clearCache(): void {
-    this.folderCache = {}
-    this.contentCache = {}
+    this.folderCache.clear()
+    this.contentCache.clear()
+    this.configCache.clear()
   }
 
   /**
@@ -229,9 +231,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     this.log(Level.Trace, 'searchInFolder', absoluteFolder)
 
     // See if already in cache
-    if (absoluteFolder in this.contentCache) {
+    if (this.configCache.has(absoluteFolder)) {
       this.log(Level.Trace, 'loadedFromCache')
-      return this.contentCache[absoluteFolder]
+      return this.configCache.get(absoluteFolder)
     }
 
     // Search configuration files
@@ -250,7 +252,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
 
     if (this.parameters.cache) {
-      this.contentCache[absoluteFolder] = result
+      this.configCache.set(absoluteFolder, result)
     }
     return result
   }
@@ -299,12 +301,12 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
         const folderName = dirname(searchedPath)
         const baseName = basename(description) + '.'
         let fileNames: string[]
-        if (folderName in this.folderCache) {
-          fileNames = this.folderCache[folderName]
+        if (this.folderCache.has(folderName)) {
+          fileNames = this.folderCache.get(folderName)!
         } else {
           fileNames = yield requestFolderContent(folderName)
           if (this.parameters.cache) {
-            this.folderCache[folderName] = fileNames
+            this.folderCache.set(folderName, fileNames)
           }
         }
         const loaders = this.findLoaderData(folderName, baseName, fileNames)
@@ -455,9 +457,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       : defaultLoadingParameters
     const absoluteFile = resolve(process.cwd(), fileName)
     this.log(Level.Trace, 'loadingFile', absoluteFile)
-    if (absoluteFile in this.contentCache && !loadingParameters.disableCache) {
+    if (this.configCache.has(absoluteFile) && !loadingParameters.disableCache) {
       this.log(Level.Trace, 'loadedFromCache')
-      return this.contentCache[absoluteFile]
+      return this.configCache.get(absoluteFile)
     }
 
     // Prevent recursion loop
@@ -480,51 +482,78 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
 
     // Loading file content
-    let result = loadingParameters.intermediateResult
-    const content = yield requestLoadConfigFile(absoluteFile, loader)
+    let result: ConfinodeResult<T> | undefined
+    let content: unknown
+    if (this.contentCache.has(absoluteFile)) {
+      content = this.contentCache.get(absoluteFile)
+    } else {
+      content = yield requestLoadConfigFile(absoluteFile, loader)
+    }
+    if (this.parameters.cache) {
+      this.contentCache.set(absoluteFile, content)
+    }
     if (content === undefined) {
       this.log(Level.Trace, 'emptyConfiguration')
+      result = loadingParameters.intermediateResult
     } else {
-      const alreadyLoaded = [...loadingParameters.alreadyLoaded, absoluteFile]
-      if (typeof content === 'string') {
-        // Indirection
-        return yield* this.loadConfig(content, dirname(absoluteFile), {
-          ...loadingParameters,
-          alreadyLoaded,
-        })
-      } else {
-        const resultFile: ResultFile = { name: absoluteFile, extends: [] }
-
-        // Inheritance
-        if (isExtending(content)) {
-          const parentConfigs = ensureArray(content.extends)
-          delete content.extends
-          let disableCache = loadingParameters.disableCache
-          for (const parentConfig of parentConfigs) {
-            result = yield* this.loadConfig(parentConfig, dirname(absoluteFile), {
-              alreadyLoaded,
-              intermediateResult: result,
-              disableCache,
-              final: false,
-            })
-            pushIfNew(resultFile.extends, result!.files, item => item.name === result!.files.name)
-            disableCache = true // Never load siblings with cache as result depends on previous loads
-          }
-        }
-
-        // Parse file
-        result = this.description.parse(content, {
-          keyName: '',
-          fileName: absoluteFile,
-          parent: result,
-          final: loadingParameters.final,
-        })
-        result && (result.files = resultFile)
-      }
+      result = yield* this.parseConfigFileContent(absoluteFile, loadingParameters, content)
     }
 
     if (this.parameters.cache && !loadingParameters.disableCache) {
-      this.contentCache[absoluteFile] = result
+      this.configCache.set(absoluteFile, result)
+    }
+    return result
+  }
+
+  /**
+   * Parse the file content.
+   *
+   * @param fileName - The name of file being parsed.
+   * @param loadingParameters - The loading parameters.
+   * @param content - The content of the file.
+   * @returns The parsing result.
+   */
+  private *parseConfigFileContent(
+    fileName: string,
+    loadingParameters: LoadingParameters<T>,
+    content: unknown
+  ): Generator<Request, ConfinodeResult<T> | undefined, any> {
+    let result = loadingParameters.intermediateResult
+    const alreadyLoaded = [...loadingParameters.alreadyLoaded, fileName]
+    if (typeof content === 'string') {
+      // Indirection
+      return yield* this.loadConfig(content, dirname(fileName), {
+        ...loadingParameters,
+        alreadyLoaded,
+      })
+    } else {
+      const resultFile: ResultFile = { name: fileName, extends: [] }
+
+      // Inheritance
+      if (isExtending(content)) {
+        const parentConfigs = ensureArray(content.extends)
+        delete content.extends
+        let disableCache = loadingParameters.disableCache
+        for (const parentConfig of parentConfigs) {
+          result = yield* this.loadConfig(parentConfig, dirname(fileName), {
+            alreadyLoaded,
+            intermediateResult: result,
+            disableCache,
+            final: false,
+          })
+          pushIfNew(resultFile.extends, result!.files, item => item.name === result!.files.name)
+          disableCache = true // Never load siblings with cache as result depends on previous loads
+        }
+      }
+
+      // Parse file
+      result = this.description.parse(content, {
+        keyName: '',
+        fileName,
+        parent: result,
+        final: loadingParameters.final,
+      })
+      result && (result.files = resultFile)
     }
     return result
   }
