@@ -254,3 +254,9 @@ But if you just want, for example, that your application support the `TOML` form
 ```javascript
 const confinode = new Confinode('gameofthrones', description, { modulePaths: __dirname })
 ```
+
+## Is it possible to use absolute path in “files” option?
+
+It is totally possible to give an absolute path for a configuration file in the `files` option, whether without extension or with (directly providing loader). Pay attention however to the file search order. Indeed, as files are first searched in the start folder (current folder by default) before being searched in parent folders, it means that a file with an absolute path will have higher priority than a file with relative path but found in a higher folder than the start one.
+
+Note that, as could be expected, files with an absolute name are searched only once, on the contrary of others which are first searched in start folder, and then again in each parent folder.

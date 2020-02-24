@@ -249,8 +249,14 @@ Si vous utilisez _TypeScript_, vos chargeurs devraient implémenter l'interface 
 
 Si le format que vous voulez supporter nativement n'est pas du tout géré par _confinode_, vous serez contraint d'[écrire un chargeur](#chargeur) et de l'[ajouter](#option-customloaders) dans les options du constructeur de _confinode_.
 
-Mais si vous voulez simplement, par exemple, que votre application supporte le format `TOML` sans que l'utilisateur n'ait de manipulation particulière à faire, il vous suffit d'ajouter l'un des modules gérant le format en tant que dépendance de votre application et d'ajouter le répertoire de votre application à l'option `modulePaths` du constructeur :
+Mais si vous voulez simplement, par exemple, que votre application supporte le format `TOML` sans que l'utilisateur n'ait de manipulation particulière à faire, il vous suffit d'ajouter l'un des modules gérant le format en tant que dépendance de votre application et d'ajouter le dossier de votre application à l'option `modulePaths` du constructeur :
 
 ```javascript
 const confinode = new Confinode('gameofthrones', description, { modulePaths: __dirname })
 ```
+
+## Est-il possible d'utiliser un chemin absolu dans l'option « files » ?
+
+Il est totalement possible de donner un chemin absolu pour un fichier de configuration dans l'option `files`, que ce soit sans extension ou avec (en fournissant directement le chargeur). Attention toutefois à l'ordre de recherche des fichiers. En effet, puisque les fichiers sont d'abord cherchés dans le dossier de départ (par défaut, le dossier courant) avant d'être cherchés dans les dossiers parents, cela veut dire qu'un fichier ayant un chemin absolu sera prioritaire sur un fichier ayant un nom relatif mais se trouvant dans un dossier supérieur au dossier de départ.
+
+Notez que, comme on pourrait s'y attendre, les fichiers avec un nom absolu ne sont recherchés qu'une seule fois, contrairement aux autres qui sont recherchés une première fois dans le dossier de départ, puis une nouvelle fois dans chaque dossier parent.

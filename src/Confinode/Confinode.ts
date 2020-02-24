@@ -1,11 +1,11 @@
-import { basename, dirname, join, resolve } from 'path'
+import { isAbsolute, basename, dirname, join, resolve } from 'path'
 
 import ConfigDescription, { anyItem } from '../ConfigDescription'
 import ConfinodeError from '../ConfinodeError'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
 import Loader, { LoaderManager } from '../Loader'
 import { Level, Message, MessageId, MessageParameters } from '../messages'
-import { ensureArray, isExisting, pushIfNew, unique } from '../utils'
+import { Cache, ensureArray, isExisting, pushIfNew, unique } from '../utils'
 import ConfinodeOptions, { ConfinodeParameters, defaultConfig, filesAreFilters } from './ConfinodeOptions'
 import ConfinodeResult, { ResultFile } from '../ConfinodeResult'
 import {
@@ -102,8 +102,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
 
   private readonly loaderManager: LoaderManager
 
-  private folderCache: { [folder: string]: string[] } = {}
-  private contentCache: { [path: string]: ConfinodeResult<T> | undefined } = {}
+  private readonly folderCache = new Cache<string[]>(60 * 1000, 18)
+  private readonly contentCache = new Cache<unknown>(300 * 1000, 24)
+  private readonly configCache = new Cache<ConfinodeResult<T> | undefined>(300 * 1000, 36)
 
   public constructor(
     public readonly name: string,
@@ -167,8 +168,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Clear the cache.
    */
   public clearCache(): void {
-    this.folderCache = {}
-    this.contentCache = {}
+    this.folderCache.clear()
+    this.contentCache.clear()
+    this.configCache.clear()
   }
 
   /**
@@ -202,7 +204,8 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
     try {
       return yield* this.searchConfigInFolder(
-        (yield requestIsFolder(searchStart)) ? searchStart : dirname(searchStart)
+        (yield requestIsFolder(searchStart)) ? searchStart : dirname(searchStart),
+        false
       )
     } catch (e) {
       /* istanbul ignore next */
@@ -216,28 +219,32 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Search for configuration in given folder. This is a recursive method.
    *
    * @param folder - The folder to search in.
+   * @param ignoreAbsolute - True to ignore absolute file names.
    * @returns A promise resolving to the configuration if found, undefined otherwise.
    */
-  private *searchConfigInFolder(folder: string): Generator<Request, ConfinodeResult<T> | undefined, any> {
+  private *searchConfigInFolder(
+    folder: string,
+    ignoreAbsolute: boolean
+  ): Generator<Request, ConfinodeResult<T> | undefined, any> {
     // Get absolute folder
     const absoluteFolder = resolve(process.cwd(), folder)
     this.log(Level.Trace, 'searchInFolder', absoluteFolder)
 
     // See if already in cache
-    if (absoluteFolder in this.contentCache) {
+    if (this.configCache.has(absoluteFolder)) {
       this.log(Level.Trace, 'loadedFromCache')
-      return this.contentCache[absoluteFolder]
+      return this.configCache.get(absoluteFolder)
     }
 
     // Search configuration files
     let result: ConfinodeResult<T> | undefined
     try {
-      result = yield* this.searchConfigUsingDescriptions(absoluteFolder)
+      result = yield* this.searchConfigUsingDescriptions(absoluteFolder, ignoreAbsolute)
       // Search in parent if not found here
       if (result === undefined && absoluteFolder !== this.parameters.searchStop) {
         const parentFolder = dirname(absoluteFolder)
         if (parentFolder !== absoluteFolder) {
-          result = yield* this.searchConfigInFolder(parentFolder)
+          result = yield* this.searchConfigInFolder(parentFolder, true)
         }
       }
     } catch (e) {
@@ -245,7 +252,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
 
     if (this.parameters.cache) {
-      this.contentCache[absoluteFolder] = result
+      this.configCache.set(absoluteFolder, result)
     }
     return result
   }
@@ -253,14 +260,16 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   /**
    * Search for configuration using options descriptions.
    *
-   * @param folder - The folder in wich to search.
+   * @param folder - The folder in which to search.
+   * @param ignoreAbsolute - True to ignore absolute file names.
    * @returns The found elements or undefined.
    */
   private *searchConfigUsingDescriptions(
-    folder: string
+    folder: string,
+    ignoreAbsolute: boolean
   ): Generator<Request, ConfinodeResult<T> | undefined | undefined, any> {
     for (const fileDescription of this.parameters.files) {
-      const fileAndLoader = yield* this.searchFileAndLoader(folder, fileDescription)
+      const fileAndLoader = yield* this.searchFileAndLoader(folder, fileDescription, ignoreAbsolute)
       if (fileAndLoader) {
         const [fileName, loader, loaderName] = fileAndLoader
         const result = yield* this.loadConfigFile(fileName, [loader, loaderName])
@@ -278,51 +287,91 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    *
    * @param folder - The folder in which to search.
    * @param description - The file description.
+   * @param ignoreAbsolute - True to ignore absolute file names.
    * @returns The found file and loader (and possible loader name), or undefined if none.
    */
   private *searchFileAndLoader(
     folder: string,
-    description: FileDescription
+    description: FileDescription,
+    ignoreAbsolute: boolean
   ): Generator<Request, [string, Loader, string | undefined] | undefined, any> {
     if (isFileBasename(description)) {
-      const searchedPath = join(folder, description)
-      const folderName = dirname(searchedPath)
-      const baseName = basename(description) + '.'
-      let fileNames: string[]
-      if (folderName in this.folderCache) {
-        fileNames = this.folderCache[folderName]
-      } else {
-        fileNames = yield requestFolderContent(folderName)
-        if (this.parameters.cache) {
-          this.folderCache[folderName] = fileNames
+      const searchedPath = this.buildConfigurationFileName(folder, description, ignoreAbsolute)
+      if (searchedPath) {
+        const folderName = dirname(searchedPath)
+        const baseName = basename(description) + '.'
+        let fileNames: string[]
+        if (this.folderCache.has(folderName)) {
+          fileNames = this.folderCache.get(folderName)!
+        } else {
+          fileNames = yield requestFolderContent(folderName)
+          if (this.parameters.cache) {
+            this.folderCache.set(folderName, fileNames)
+          }
         }
-      }
-      const loaders = fileNames
-        .filter(fileName => fileName.startsWith(baseName))
-        .map(fileName => {
-          const loader = this.loaderManager.getLoaderFor(
-            this.parameters.modulePaths,
-            fileName,
-            fileName.slice(baseName.length)
-          )
-          return isExisting(loader)
-            ? ([join(folderName, fileName), ...loader] as [string, Loader, string | undefined])
-            : undefined
-        })
-        .filter(isExisting)
-      if (loaders.length > 0) {
-        if (loaders.length > 1) {
-          this.log(Level.Warning, 'multipleFiles', searchedPath)
+        const loaders = this.findLoaderData(folderName, baseName, fileNames)
+        if (loaders.length > 0) {
+          if (loaders.length > 1) {
+            this.log(Level.Warning, 'multipleFiles', searchedPath)
+          }
+          return loaders[0]
         }
-        return loaders[0]
       }
     } else {
-      const fileName = join(folder, description.name)
-      if (yield requestFileExits(fileName)) {
+      const fileName = this.buildConfigurationFileName(folder, description.name, ignoreAbsolute)
+      if (fileName && (yield requestFileExits(fileName))) {
         return [fileName, description.loader, undefined] as [string, Loader, string | undefined]
       }
     }
     return undefined
+  }
+
+  /**
+   * Build the configuration file name (possibly without extension) based on the file name and the folder.
+   *
+   * @param folder - The folder in which to search for the file.
+   * @param fileName - The name of the file.
+   * @param ignoreAbsolute - True to ignore absolute file names.
+   * @returns The built file name or undefined if should be ignored.
+   */
+  private buildConfigurationFileName(
+    folder: string,
+    fileName: string,
+    ignoreAbsolute: boolean
+  ): string | undefined {
+    if (isAbsolute(fileName)) {
+      return ignoreAbsolute ? undefined : fileName
+    } else {
+      return join(folder, fileName)
+    }
+  }
+
+  /**
+   * Find the loader data for the given files.
+   *
+   * @param folder - The folder in which search is done.
+   * @param baseName - The base name (start) of the file, including the `.` preceding extension.
+   * @param fileNames - The name of the files for which to find loaders.
+   * @returns All found loader data as: full path to file, loader, loader name.
+   */
+  private findLoaderData(
+    folder: string,
+    baseName: string,
+    fileNames: string[]
+  ): Array<[string, Loader, string | undefined]> {
+    return fileNames
+      .filter(fileName => fileName.startsWith(baseName))
+      .map(fileName => {
+        const loader = this.loaderManager.getLoaderFor(
+          this.parameters.modulePaths,
+          fileName,
+          fileName.slice(baseName.length)
+        )
+        return isExisting(loader)
+          ? ([join(folder, fileName), ...loader] as [string, Loader, string | undefined])
+          : undefined
+      })
+      .filter(isExisting)
   }
 
   /**
@@ -408,9 +457,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       : defaultLoadingParameters
     const absoluteFile = resolve(process.cwd(), fileName)
     this.log(Level.Trace, 'loadingFile', absoluteFile)
-    if (absoluteFile in this.contentCache && !loadingParameters.disableCache) {
+    if (this.configCache.has(absoluteFile) && !loadingParameters.disableCache) {
       this.log(Level.Trace, 'loadedFromCache')
-      return this.contentCache[absoluteFile]
+      return this.configCache.get(absoluteFile)
     }
 
     // Prevent recursion loop
@@ -433,51 +482,78 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
 
     // Loading file content
-    let result = loadingParameters.intermediateResult
-    const content = yield requestLoadConfigFile(absoluteFile, loader)
+    let result: ConfinodeResult<T> | undefined
+    let content: unknown
+    if (this.contentCache.has(absoluteFile)) {
+      content = this.contentCache.get(absoluteFile)
+    } else {
+      content = yield requestLoadConfigFile(absoluteFile, loader)
+    }
+    if (this.parameters.cache) {
+      this.contentCache.set(absoluteFile, content)
+    }
     if (content === undefined) {
       this.log(Level.Trace, 'emptyConfiguration')
+      result = loadingParameters.intermediateResult
     } else {
-      const alreadyLoaded = [...loadingParameters.alreadyLoaded, absoluteFile]
-      if (typeof content === 'string') {
-        // Indirection
-        return yield* this.loadConfig(content, dirname(absoluteFile), {
-          ...loadingParameters,
-          alreadyLoaded,
-        })
-      } else {
-        const resultFile: ResultFile = { name: absoluteFile, extends: [] }
-
-        // Inheritance
-        if (isExtending(content)) {
-          const parentConfigs = ensureArray(content.extends)
-          delete content.extends
-          let disableCache = loadingParameters.disableCache
-          for (const parentConfig of parentConfigs) {
-            result = yield* this.loadConfig(parentConfig, dirname(absoluteFile), {
-              alreadyLoaded,
-              intermediateResult: result,
-              disableCache,
-              final: false,
-            })
-            pushIfNew(resultFile.extends, result!.files, item => item.name === result!.files.name)
-            disableCache = true // Never load siblings with cache as result depends on previous loads
-          }
-        }
-
-        // Parse file
-        result = this.description.parse(content, {
-          keyName: '',
-          fileName: absoluteFile,
-          parent: result,
-          final: loadingParameters.final,
-        })
-        result && (result.files = resultFile)
-      }
+      result = yield* this.parseConfigFileContent(absoluteFile, loadingParameters, content)
     }
 
     if (this.parameters.cache && !loadingParameters.disableCache) {
-      this.contentCache[absoluteFile] = result
+      this.configCache.set(absoluteFile, result)
+    }
+    return result
+  }
+
+  /**
+   * Parse the file content.
+   *
+   * @param fileName - The name of file being parsed.
+   * @param loadingParameters - The loading parameters.
+   * @param content - The content of the file.
+   * @returns The parsing result.
+   */
+  private *parseConfigFileContent(
+    fileName: string,
+    loadingParameters: LoadingParameters<T>,
+    content: unknown
+  ): Generator<Request, ConfinodeResult<T> | undefined, any> {
+    let result = loadingParameters.intermediateResult
+    const alreadyLoaded = [...loadingParameters.alreadyLoaded, fileName]
+    if (typeof content === 'string') {
+      // Indirection
+      return yield* this.loadConfig(content, dirname(fileName), {
+        ...loadingParameters,
+        alreadyLoaded,
+      })
+    } else {
+      const resultFile: ResultFile = { name: fileName, extends: [] }
+
+      // Inheritance
+      if (isExtending(content)) {
+        const parentConfigs = ensureArray(content.extends)
+        delete content.extends
+        let disableCache = loadingParameters.disableCache
+        for (const parentConfig of parentConfigs) {
+          result = yield* this.loadConfig(parentConfig, dirname(fileName), {
+            alreadyLoaded,
+            intermediateResult: result,
+            disableCache,
+            final: false,
+          })
+          pushIfNew(resultFile.extends, result!.files, item => item.name === result!.files.name)
+          disableCache = true // Never load siblings with cache as result depends on previous loads
+        }
+      }
+
+      // Parse file
+      result = this.description.parse(content, {
+        keyName: '',
+        fileName,
+        parent: result,
+        final: loadingParameters.final,
+      })
+      result && (result.files = resultFile)
     }
     return result
   }

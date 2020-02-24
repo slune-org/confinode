@@ -1,5 +1,4 @@
-import { access, accessSync, constants, readdir, readdirSync } from 'fs'
-import { isDirectory, isDirectorySync } from 'path-type'
+import { access, accessSync, constants, readdir, readdirSync, stat, statSync } from 'fs'
 
 import Loader from '../Loader'
 import { assertNever } from '../utils'
@@ -99,7 +98,11 @@ export async function asyncExecute<R>(stepRun: Generator<Request, R, any>): Prom
       let response: any
       switch (request.request) {
         case RequestType.IsFolder:
-          response = await isDirectory(request.payload)
+          response = await new Promise<boolean>(res =>
+            stat(request.payload, (err, stats) => {
+              err ? /* istanbul ignore next */ res(false) : res(stats.isDirectory())
+            })
+          )
           break
         case RequestType.FileExists:
           response = await new Promise<boolean>(res =>
@@ -143,7 +146,14 @@ export function syncExecute<R>(stepRun: Generator<Request, R, any>): R {
       let response: any
       switch (request.request) {
         case RequestType.IsFolder:
-          response = isDirectorySync(request.payload)
+          response = (() => {
+            try {
+              return statSync(request.payload).isDirectory()
+            } catch {
+              /* istanbul ignore next */
+              return false
+            }
+          })()
           break
         case RequestType.FileExists:
           response = (() => {
