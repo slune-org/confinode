@@ -366,20 +366,30 @@ describe('Confinode', function() {
       it('should not find filtered out files', async function() {
         const myFilter = (descriptions: FileDescription[]) =>
           descriptions.filter(description => typeof description !== 'string' || !description.endsWith('rc'))
-        const starwars = new Confinode('starwars', configurationDescription, {
+        const confinode = new Confinode('starwars', configurationDescription, {
           logger: ignoreLogs,
           files: [noPackageJson, myFilter],
         })
-        await expect(starwars.search(moduleDir)).to.eventually.be.undefined
+        await expect(confinode.search(moduleDir)).to.eventually.be.undefined
       })
 
       it('should find files directly provided to the list', async function() {
-        const titanic = new Confinode('titanic', configurationDescription, {
+        const confinode = new Confinode('gonewiththewind', configurationDescription, {
           logger: ignoreLogs,
-          files: ['.gonewiththewindrc'],
+          files: [join(moduleDir, 'not.existing'), '.gonewiththewindrc'],
         })
-        const titanicResult = await titanic.search(moduleDir)
-        expect(titanicResult?.configuration.where).to.equal('.gonewiththewindrc.ts')
+        const result = await confinode.search(moduleDir)
+        expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
+      })
+
+      it('should find files provided with absolute path', async function() {
+        const confinode = new Confinode('gonewiththewind', configurationDescription, {
+          searchStop: moduleDir,
+          logger: ignoreLogs,
+          files: [join(testDir, '.gonewiththewindrc')],
+        })
+        const result = await confinode.search(moduleDir)
+        expect(result?.configuration.where).to.equal('.gonewiththewindrc.ts')
       })
     })
 
