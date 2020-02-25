@@ -6,7 +6,7 @@
 
 # confinode - Node.js application configuration management
 
-This package provides a library which purpose is to be a standard and universal configuration file manager for Node.js applications. Its main features are:
+This package provides a library whose purpose is to be a standard and universal configuration file manager for Node.js applications. Its main features are:
 
 - synchronous or asynchronous… or both;
 - file system access cache;
