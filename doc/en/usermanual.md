@@ -23,9 +23,9 @@ If you don't provide a configuration file name, the application will search a fi
 
 - in a `starwars` entry of the `package.json` file;
 - in the `.starwarsrc` file formatted as `YAML` or `JSON`;
-- in the `.starwarsrc` file with one of the managed extensions;
-- in the `starwars.config` file with one of the managed extensions;
-- in the `.starwars/starwars.config` file with one of the managed extensions.
+- in the `.starwarsrc.*` file with one of the [managed extensions](../extensions.md);
+- in the `starwars.config.*` file with one of the [managed extensions](../extensions.md);
+- in the `.starwars/starwars.config.*` file with one of the [managed extensions](../extensions.md).
 
 Please note that if multiple files with same priority are accessible (with different extensions), application will arbitrarily select one and display a warning.
 
@@ -35,9 +35,25 @@ The configuration file is first searched in the current folder then, if not foun
 
 It is possible to use indirections. If, for example, you put all your configuration files in a specific place, but you do not want to give this place each time you call the application, you can specify this place in one of the automatically searched files. For this, the file just have to return a string which will be used as true configuration file name.
 
-So, for _starwars_ application, you can use the `starwars` entry of `package.json` not to put the full configuration, but to give the real path to the configuration file to use.
-
 Note that if you give a relative file name in your indirection, the file will be searched relative to the place of the current configuration file.
+
+## Examples
+
+In the following example, configuration will be in the file `/etc/starwars/config.yaml`:
+
+```json
+// package.json
+{
+  "starwars": "/etc/starwars/config.yaml"
+}
+```
+
+In the following example, configuration will be in `/home/user/config/starwars.json`:
+
+```javascript
+// /home/user/starwars/application/.starwarsrc.js
+module.exports = '../../config/starwars.json'
+```
 
 # Inheritance
 
@@ -47,8 +63,33 @@ In order to do that, you have to add to your configuration object a key named `e
 
 Note that if you give a relative file name in your `extends` entry, the file will be searched relative to the place of the current configuration file.
 
+## Example
+
+In the following example, configuration will inherit in this order:
+
+- from the main file of package `@stormtrooper/config`;
+- from the file `laser.js` of package `deathstar` ;
+- from the file `/home/user/starwars/rebel.json`.
+
+The configuration will also overwrite the entry `apiKey` whether it is in one of the inherited files or not.
+
+```yaml
+# /home/user/starwars/application/.starwarsrc.yaml
+extends:
+  - '@stormtrooper/config'
+  - 'deathstar/laser.js'
+  - '../rebel.json'
+apiKey: 'secret'
+```
+
 # FAQ
 
 ## Is it possible to create a module with my configuration?
 
 It is of course possible to put a configuration file of any format in an external module. If this file is indicated as the main entry of the module (`main` key in `package.json` file), you will just have to give the module name to the application (using an indirection, for example). If not, you will have to indicate the file path inside the module, which allow to put many configurations for many applications inside the same module. For example, in order to load the `starwars.yaml` file which is inside the `config` folder of the `corporate-cfg` module, you will need to give: `corporate-cfg/config/starwars.yaml`.
+
+## Is it possible to inherit from an indirection?
+
+It is possible to mix inheritances and indirections up to infinity… Or at least, as far as the computer resources allow it. The only limit is that it is not possible to create cycles (recursion).
+
+However, be careful that if too many files have to be read, this could saturate the library cache and therefore impact performance.
