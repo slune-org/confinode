@@ -123,7 +123,7 @@ Avec l'option `logger`, vous pouvez spécifier une fonction qui prend un paramè
 Par défaut, lorsque _confinode_ recherche un fichier de configuration pour l'application _gameofthrones_, il utilise la liste suivante :
 
 - l'entrée `gameofthrones` du fichier `package.json` ;
-- le fichier `.gameofthronesrc` au format `YAML` ou `JSON` ;
+- le fichier `.gameofthronesrc` au format _YAML_ ou *JSON* ;
 - un fichier `.gameofthronesrc` avec l'une des extensions gérées ;
 - un fichier `gameofthrones.config` avec l'une des extensions gérées ;
 - un fichier `.gameofthrones/gameofthrones.config` avec l'une des extensions gérées.
@@ -249,11 +249,23 @@ Si vous utilisez _TypeScript_, vos chargeurs devraient implémenter l'interface 
 
 Si le format que vous voulez supporter nativement n'est pas du tout géré par _confinode_, vous serez contraint d'[écrire un chargeur](#chargeur) et de l'[ajouter](#option-customloaders) dans les options du constructeur de _confinode_.
 
-Mais si vous voulez simplement, par exemple, que votre application supporte le format `TOML` sans que l'utilisateur n'ait de manipulation particulière à faire, il vous suffit d'ajouter l'un des modules gérant le format en tant que dépendance de votre application et d'ajouter le dossier de votre application à l'option `modulePaths` du constructeur :
+Mais si vous voulez simplement, par exemple, que votre application supporte le format _TOML_ sans que l'utilisateur n'ait de manipulation particulière à faire, il vous suffit d'ajouter l'un des modules gérant le format en tant que dépendance de votre application et d'ajouter le dossier de votre application à l'option `modulePaths` du constructeur :
 
 ```javascript
 const confinode = new Confinode('gameofthrones', description, { modulePaths: __dirname })
 ```
+
+## Pourquoi tous les formats ne sont-ils pas supportés nativement ?
+
+La bibliothèque supporte nativement le _Javascript_, le _JSON_ et le _YAML_. Les deux premiers parce que Node.js est capable de les lire nativement, le troisième parce qu'il est standard que l'on puisse écrire un fichier de type `.gameofthronesrc` en _JSON_ ou en _YAML_.
+
+Aucun décodeur d'un autre format n'est inclus dans la bibliothèque afin de garder celle-ci légère. Les manipulations à faire pour utiliser un autre format sont suffisamment simples, et le plus souvent, déjà faites. En effet, si, par exemple, vous avez l'habitude d'écrire vos projets en _TypeScript_, vous avez déjà probablement dans votre projet les modules nécessaires pour que _confinode_ puisse lire les fichiers _TypeScript_.
+
+## Pourquoi utiliser la méthode `require` de Node.js ?
+
+Dans la mesure du possible _confinode_ **n'utilise pas** la méthode `require` pour charger les fichiers de configuration, et préfère utiliser les méthodes d'interprétation des modules disponibles.
+
+Cependant, les fichiers écrits dans une variante de _JavaScript_ peuvent eux-même directement importer d'autres fichiers écrits dans cette variante sans que _confinode_ ne puisse le contrôler. Pour cette raison, la bibliothèque utilise la fonctionnalité de ces modules permettant d'intercepter les appels à `require` et dans ce cas, utilise effectivement cette méthode pour charger les fichiers.
 
 ## Est-il possible d'utiliser un chemin absolu dans l'option « files » ?
 
