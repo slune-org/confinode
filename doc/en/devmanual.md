@@ -123,7 +123,7 @@ With the `logger` option, you can specify a function taking a [Message](../../sr
 By default, when _confinode_ is searching for a configuration file for the _gameofthrones_ application, it uses the following list:
 
 - the `gameofthrones` entry in the `package.json` file;
-- the file `.gameofthronesrc` formatted as `YAML` or `JSON`;
+- the file `.gameofthronesrc` formatted as _YAML_ or _JSON_;
 - a file `.gameofthronesrc` with one of the managed extension;
 - a file `gameofthrones.config` with one of the managed extension;
 - a file `.gameofthrones/gameofthrones.config` with one of the managed extension.
@@ -249,11 +249,23 @@ For _TypeScript_ users, loader classes should implement the [Loader](../../src/L
 
 If the format you want to support out-of-the-box is not managed at all by _confinode_, you will have to [write a loader](#loader) and to [add](#customloaders-option) it to _confinode_ constructor options.
 
-But if you just want, for example, that your application support the `TOML` format without the need for the user to have any manipulation to do, you just have to add one of the modules managing the format as a dependency of your application and to add your application folder to the constructor `modulePaths` option:
+But if you just want, for example, that your application support the _TOML_ format without the need for the user to have any manipulation to do, you just have to add one of the modules managing the format as a dependency of your application and to add your application folder to the constructor `modulePaths` option:
 
 ```javascript
 const confinode = new Confinode('gameofthrones', description, { modulePaths: __dirname })
 ```
+
+## Why aren't all formats supported out-of-the-box?
+
+The library support _JavaScript_, _JSON_ and _YAML_ out-of-the-box. The first two because Node.js support them out-of-the-box, the last one because it is a standard that a file like `.gameofthronesrc` can be written in _JSON_ or in _YAML_.
+
+No parser of any other format is included in the library in order to keep it light. Manipulations to do to use another format are simple enough, and most of the time, already done. Indeed, if, for example, you are used to write you projects in _TypeScript_, you probably already have in your project the required modules for _confinode_ can read the _TypeScript_ files.
+
+## Why use the Node.js `require` method?
+
+As far as possible _confinode_ **does not use** the `require` method to load the configuration files, and prefers to use the parsing methods of the available modules.
+
+However, files written in a variant of _JavaScript_ can themselves directly import other files written in this variant without _confinode_ being able to control it. For this reason, the library uses the functionality of these modules to subscribe to `require` calls and in this case, actually uses this method to load files.
 
 ## Is it possible to use absolute path in “files” option?
 
