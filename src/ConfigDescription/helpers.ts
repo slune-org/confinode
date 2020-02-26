@@ -5,6 +5,7 @@ import BooleanDescription from './BooleanDescription'
 import ChoiceDescription from './ChoiceDescription'
 import ConditionalDescription from './ConditionalDescription'
 import DefaultValueDescription from './DefaultValueDescription'
+import DictionaryDescription from './DictionaryDescription'
 import LiteralDescription, { ConfigDescriptionLiteral } from './LiteralDescription'
 import NumberDescription from './NumberDescription'
 import OptionalDescription from './OptionalDescription'
@@ -85,6 +86,16 @@ export function conditional<I, E>(
  */
 export function defaultValue<T>(description: ConfigDescription<T>, value: T): ConfigDescription<T> {
   return new DefaultValueDescription(description, value)
+}
+
+/**
+ * Describe a dictionary, i.e. an object with strings as keys and whatever is described as values.
+ *
+ * @param description - The description of a dictionary value.
+ * @returns The configuration description.
+ */
+export function dictionary<T>(description: ConfigDescription<T>): ConfigDescription<{ [key: string]: T }> {
+  return new DictionaryDescription(description)
 }
 
 /**

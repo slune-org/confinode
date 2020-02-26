@@ -7,6 +7,7 @@ export {
   choiceItem,
   conditional,
   defaultValue,
+  dictionary,
   literal,
   numberItem,
   optional,
