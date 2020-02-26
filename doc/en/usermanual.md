@@ -19,7 +19,7 @@ Once interpreted, your configuration file must return either an object literal o
 
 # Configuration search
 
-If you don't provide a configuration file name, the application will search a file fro a list of standard names. For example, if your application is named _starwars_, its configuration will be searched, in this order:
+If you don't provide a configuration file name, the application will search a file from a list of standard names. For example, if your application is named _starwars_, its configuration will be searched, in this order:
 
 - in a `starwars` entry of the `package.json` file;
 - in the `.starwarsrc` file formatted as `YAML` or `JSON`;
@@ -33,7 +33,7 @@ The configuration file is first searched in the current folder then, if not foun
 
 # Indirection
 
-It is possible to use indirections. If, for example, you put all your configuration files in a specific place, but you do not want to give this place each time you call the application, you can specify this place in one of the automatically searched files. For this, the file just have to return a string which will be used as true configuration file name.
+It is possible to use indirections. If, for example, you put all your configuration files in a specific place, but you do not want to give this place each time you call the application, you can specify this place in one of the automatically searched files. For this, the file just has to return a string which will be used as true configuration file name.
 
 Note that if you give a relative file name in your indirection, the file will be searched relative to the place of the current configuration file.
 
