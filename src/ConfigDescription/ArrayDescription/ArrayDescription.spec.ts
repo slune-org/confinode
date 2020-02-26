@@ -35,7 +35,7 @@ describe('ArrayDescription', function() {
     expect(numberSpy).to.have.callCount(value.length)
     numberSpy
       .getCalls()
-      .forEach((call, index) => expect(call.args[1].keyName).to.equal(`KeYnAmE[${index++}]`))
+      .forEach((call, index) => expect(call.args[1].keyName).to.equal(`KeYnAmE[${index}]`))
   })
 
   it('should return merged arrays', function() {

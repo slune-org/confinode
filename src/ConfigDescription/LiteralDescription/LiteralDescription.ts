@@ -8,7 +8,7 @@ export type ConfigDescriptionLiteral<T extends object> = {
 }
 
 /**
- * Description of a literal object.
+ * Description of an object literal.
  */
 export default class LiteralDescription<T extends object> implements ConfigDescription<T> {
   public constructor(private readonly description: ConfigDescriptionLiteral<T>) {}

@@ -39,7 +39,7 @@ describe('Configuration description', function() {
         expect(helpers).to.satisfy(exportOneOf(helperName, itemHelperName))
       })
 
-      it('should have a matching helper exported from folder', function() {
+      it('should have a matching helper exported from project', function() {
         expect(reexport).to.satisfy(exportOneOf(helperName, itemHelperName))
       })
     })

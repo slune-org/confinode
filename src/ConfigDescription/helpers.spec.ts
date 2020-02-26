@@ -8,6 +8,7 @@ import {
   choiceItem,
   conditional,
   defaultValue,
+  dictionary,
   literal,
   numberItem,
   optional,
@@ -37,6 +38,7 @@ interface Config {
     }
   }
   p: { q: string } | { r: number }
+  s: { [key: string]: string }
 }
 const description = literal<Config>({
   a: anyItem(),
@@ -67,6 +69,7 @@ const description = literal<Config>({
     literal({ q: stringItem() }),
     literal({ r: numberItem() })
   ),
+  s: dictionary(stringItem()),
 })
 function dummy() {
   return
@@ -79,6 +82,7 @@ describe('helpers', function() {
         a: dummy,
         b: { d: 'world', i: [{ j: [], l: 'Saluton' }] },
         p: { q: 'foo' },
+        s: {},
       },
       { keyName: '', fileName: 'FilENamE', final: true }
     )
@@ -93,6 +97,7 @@ describe('helpers', function() {
         m: { n: 'mandatory', o: undefined },
       },
       p: { q: 'foo' },
+      s: {},
     })
   })
 
@@ -102,6 +107,7 @@ describe('helpers', function() {
         a: {},
         b: { c: true, d: 'hello', e: 12, f: {}, i: [], m: { n: 'Saluton' } },
         p: { r: 12 },
+        s: { key1: 'value1', key2: 'value2' },
       },
       { keyName: '', fileName: 'FilENamE', final: true }
     )
@@ -116,6 +122,7 @@ describe('helpers', function() {
         m: { n: 'Saluton', o: undefined },
       },
       p: { r: 12 },
+      s: { key1: 'value1', key2: 'value2' },
     })
   })
 })
