@@ -1,7 +1,7 @@
 /**
  * The level of the message.
  */
-const enum Level {
+enum Level {
   Error,
   Warning,
   Information,
