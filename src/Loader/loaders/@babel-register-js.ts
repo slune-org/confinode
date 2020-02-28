@@ -1,5 +1,5 @@
-import { LoaderDescription, RequiringLoader } from '../../Loader'
-import { ignoreNonBabelAndNodeModules } from '../helpers'
+import { LoaderDescription, RequiringLoader } from '../Loader'
+import { ignoreNonBabelAndNodeModules } from './helpers'
 
 /**
  * Loader implementation.

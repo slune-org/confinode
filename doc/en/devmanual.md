@@ -124,11 +124,11 @@ By default, when _confinode_ is searching for a configuration file for the _game
 
 - the `gameofthrones` entry in the `package.json` file;
 - the file `.gameofthronesrc` formatted as _YAML_ or _JSON_;
-- a file `.gameofthronesrc` with one of the managed extension;
-- a file `gameofthrones.config` with one of the managed extension;
-- a file `.gameofthrones/gameofthrones.config` with one of the managed extension.
+- a file `.gameofthronesrc.*` with one of the [managed extensions](../extensions.md);
+- a file `gameofthrones.config.*` with one of the [managed extensions](../extensions.md);
+- a file `.gameofthrones/gameofthrones.config.*` with one of the [managed extensions](../extensions.md).
 
-Even if this is not recommended, in order not to break user experience for your application, it is possible to modify this list by giving a `files` option in two ways:
+Even if this is not recommended, in order not to break user experience for your application, it is possible to modify this list with the `files` option in two ways:
 
 - by giving an array of filter functions taking as input and returning an array of file descriptions — the pre-defined `noPackageJson` filter can be used to remove the `package.json` file from the list;
 - by directly providing an array of file descriptions.
@@ -139,8 +139,6 @@ A file description is:
 
 - either a file name without extension, but with a sub-folder if needed (e.g. `.gameofthrones/gameofthrones.config`), for which all managed extensions will be tested;
 - either an object literal with the `name` property containing the exact name of the file (including extension) and a `loader` property containing an instance of the loader to use.
-
-For a list of managed extensions, see [this file](../extensions.md)
 
 ## “customLoaders” option
 

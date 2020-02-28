@@ -1,7 +1,7 @@
 import { readFile, readFileSync } from 'fs'
 import { promisify } from 'util'
 
-import Loader, { LoaderDescription } from '../../Loader'
+import Loader, { LoaderDescription } from '../Loader'
 
 interface Toml {
   parse: { (input: string): unknown; async: (input: string) => Promise<unknown> }
