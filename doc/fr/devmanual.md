@@ -124,11 +124,11 @@ Par défaut, lorsque _confinode_ recherche un fichier de configuration pour l'ap
 
 - l'entrée `gameofthrones` du fichier `package.json` ;
 - le fichier `.gameofthronesrc` au format _YAML_ ou *JSON* ;
-- un fichier `.gameofthronesrc` avec l'une des extensions gérées ;
-- un fichier `gameofthrones.config` avec l'une des extensions gérées ;
-- un fichier `.gameofthrones/gameofthrones.config` avec l'une des extensions gérées.
+- un fichier `.gameofthronesrc.*` avec l'une des [extensions gérées](../extensions.md) ;
+- un fichier `gameofthrones.config.*` avec l'une des [extensions gérées](../extensions.md) ;
+- un fichier `.gameofthrones/gameofthrones.config.*` avec l'une des [extensions gérées](../extensions.md).
 
-Même si cela est déconseillé pour ne pas perturber les utilisateurs de votre application, il est possible de modifier cette liste en définissant l'option `files` de deux façons :
+Même si cela est déconseillé pour ne pas perturber les utilisateurs de votre application, il est possible de modifier cette liste avec l'option `files` de deux façons :
 
 - en donnant un tableau de fonctions de filtrage qui prennent en entrée et renvoie un tableau de descriptions de fichiers — le filtre pré-défini `noPackageJson` permet de retirer le fichier `package.json` de la liste ;
 - en donnant directement un tableau de descriptions de fichiers.
@@ -139,8 +139,6 @@ Une description de fichiers se présente :
 
 - soit sous la forme d'un nom de fichier sans extension, mais avec un éventuel nom de sous-dossier (comme par exemple `.gameofthrones/gameofthrones.config`), auquel cas toutes les extensions gérées seront testées ;
 - soit sous la forme d'un littéral d'objet avec la propriété `name` qui contient le nom exact du fichier (extension incluse) et la propriété `loader` qui contient une instance du chargeur à utiliser.
-
-Pour la liste des extensions gérées, voir [ce fichier](../extensions.md)
 
 ## Option « customLoaders »
 
