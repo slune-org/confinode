@@ -1,7 +1,8 @@
 import { readFile, readFileSync } from 'fs'
 import { promisify } from 'util'
 
-import Loader, { LoaderDescription } from '../Loader'
+import Loader from '../Loader'
+import LoaderDescription from '../LoaderDescription'
 
 interface Ini {
   parse(input: string): unknown

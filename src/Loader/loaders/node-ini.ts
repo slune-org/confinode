@@ -1,4 +1,5 @@
-import Loader, { LoaderDescription } from '../Loader'
+import Loader from '../Loader'
+import LoaderDescription from '../LoaderDescription'
 
 interface NodeIni {
   parse(file: string, cb: (err: any, data: unknown) => void): void

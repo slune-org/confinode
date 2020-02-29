@@ -2,7 +2,8 @@ import { readFile, readFileSync } from 'fs'
 import { promisify } from 'util'
 import { parse } from 'yaml'
 
-import Loader, { LoaderDescription } from '../Loader'
+import Loader from '../Loader'
+import LoaderDescription from '../LoaderDescription'
 
 /**
  * Loader implementation.

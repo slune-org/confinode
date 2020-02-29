@@ -144,7 +144,7 @@ Une description de fichiers se présente :
 
 La liste de chargeurs par défaut incluse dans _confinode_ se veut relativement exhaustive. Il peut toutefois y avoir des cas où vous souhaitez utiliser des types de fichiers (très spécifiques) qui ne sont pas (encore) inclus dans _confinode_. Dans ce cas, vous pouvez [créer les chargeurs appropriés](#chargeur) et les spécifier dans l'option `customLoaders`.
 
-Cette option est un litéral d'objet qui prend comme clés le nom que vous souhaitez donner au chargeur. Afin de ne pas écraser les chargeurs par défaut, le nom que vous spécifiez sera préfixé par le nom de l'application suivi du signe `#`. En valeur, l'objet prend un autre litéral d'objet respectant l'interface [LoaderDescription](../../src/Loader/Loader.ts), c'est-à-dire contenant :
+Cette option est un litéral d'objet qui prend comme clés le nom que vous souhaitez donner au chargeur. Afin de ne pas écraser les chargeurs par défaut, le nom que vous spécifiez sera préfixé par le nom de l'application suivi du signe `#`. En valeur, l'objet prend un autre litéral d'objet respectant l'interface [LoaderDescription](../../src/Loader/LoaderDescription.ts), c'est-à-dire contenant :
 
 - une entrée `filetypes` avec l'extension ou les extensions gérées par ce chargeur (**sans** le `.` qui précède) sous la forme d'une chaine de caractères ou d'un tableau de chaines de caractères ;
 - une entrée optionnelle `module` contenant le nom d'un module (ou sous-module) à requérir pour que le chargeur fonctionne — si ce module n'est pas trouvé, le chargeur sera considéré comme inexistant ;

@@ -26,37 +26,3 @@ export default interface Loader {
 export interface LoaderType<T extends any[]> {
   Loader: new (required: any, ..._: T) => Loader
 }
-
-/**
- * The description of a loader.
- */
-export interface LoaderDescription extends LoaderType<[]> {
-  /**
-   * Type of the files managed by this loader.
-   */
-  filetypes: string | string[]
-
-  /**
-   * The module needed, if any, to use the loader.
-   */
-  module?: string
-
-  /**
-   * The loader type (constructor).
-   */
-  Loader: new (required: any) => Loader
-}
-
-/**
- * A class for loaders based on register/require.
- */
-export class RequiringLoader implements Loader {
-  public load(fileName: string) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    let result = require(fileName)
-    if (result && result.__esModule && result.default) {
-      result = result.default
-    }
-    return result
-  }
-}

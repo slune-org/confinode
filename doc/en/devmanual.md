@@ -144,7 +144,7 @@ A file description is:
 
 The default loaders list included in _confinode_ wants to be somehow exhaustive. There may anyway be cases where you want to use (very specific) file types which are not (yet) included in _confinode_. In this case, you can [create appropriate loaders](#loader) and specify them in the `customLoaders` options.
 
-This option is an object literal which takes the name you wish to give to the loader as key. In order not to overwrite default loaders, the name you give will be prefixed by the application name followed by the `#` character. As value, the object takes another object literal conforming to the [LoaderDescription](../../src/Loader/Loader.ts) interface, i.e. containing:
+This option is an object literal which takes the name you wish to give to the loader as key. In order not to overwrite default loaders, the name you give will be prefixed by the application name followed by the `#` character. As value, the object takes another object literal conforming to the [LoaderDescription](../../src/Loader/LoaderDescription.ts) interface, i.e. containing:
 
 - a `filetypes` entry with the extension or extensions managed by this loader (**without** the preceding `.` character) as a string or string array;
 - an optional `module` entry containing the name of a module (or sub-module) to require for the loader to work — if the module is not found, the loader will be considered inexistent;
