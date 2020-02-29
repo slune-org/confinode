@@ -45,6 +45,13 @@ class FakeLoader implements Loader {
   }
 }
 
+// A failing loader
+class FailingLoader implements Loader {
+  public load(): unknown | undefined {
+    throw new Error('Expected error from failing loader')
+  }
+}
+
 // Test directories
 const testDir = resolve(__dirname, '../../__tests__')
 const moduleDir = join(testDir, 'stop', 'files')
@@ -398,7 +405,7 @@ describe('Confinode', function() {
         const confinode = new Confinode('loaders', configurationDescription, {
           logger: ignoreLogs,
         })
-        await expect(confinode.load(join(moduleDir, 'special.special'))).to.eventually.be.undefined
+        await expect(confinode.load(join(moduleDir, 'special.ext.special'))).to.eventually.be.undefined
       })
 
       it('should load special file with custom loader', async function() {
@@ -407,7 +414,7 @@ describe('Confinode', function() {
           customLoaders: { fake: { filetypes: 'special', Loader: FakeLoader } },
         })
         storedLogs = []
-        const fileName = join(moduleDir, 'special.special')
+        const fileName = join(moduleDir, 'special.ext.special')
         const result = await confinode.load(fileName)
         expect(result).not.to.be.undefined
         expect(result?.configuration.where).to.equal(fileName)
@@ -558,6 +565,43 @@ describe('Confinode', function() {
     it('should manage wrongly formatted extends', async function() {
       await expect(badComplex.load(join(moduleDir, 'badextend.json'))).to.eventually.be.undefined
       expect(storedLogs.map(message => message.messageId)).to.include('badExtends')
+    })
+
+    it('should try other loader if first is failing', async function() {
+      const specialConfinode = new Confinode('loaders', configurationDescription, {
+        logger: catchLogs,
+        customLoaders: {
+          failing: { filetypes: 'ext.special', Loader: FailingLoader },
+          fake: { filetypes: 'special', Loader: FakeLoader },
+        },
+      })
+      storedLogs = []
+      const fileName = join(moduleDir, 'special.ext.special')
+      const result = await specialConfinode.load(fileName)
+      expect(result).not.to.be.undefined
+      expect(result?.configuration.where).to.equal(fileName)
+      const loaders = storedLogs.filter(msg => msg.messageId === 'usingLoader')
+      expect(loaders).to.have.lengthOf(2)
+      expect(loaders[0]).to.match(/ loaders#failing /)
+      expect(loaders[1]).to.match(/ loaders#fake /)
+    })
+
+    it('should fail if all loaders are failing', async function() {
+      const specialConfinode = new Confinode('loaders', configurationDescription, {
+        logger: catchLogs,
+        customLoaders: {
+          failing: { filetypes: 'ext.special', Loader: FailingLoader },
+          failtoo: { filetypes: 'special', Loader: FailingLoader },
+        },
+      })
+      storedLogs = []
+      const fileName = join(moduleDir, 'special.ext.special')
+      const result = await specialConfinode.load(fileName)
+      expect(result).to.be.undefined
+      const loaders = storedLogs.filter(msg => msg.messageId === 'usingLoader')
+      expect(loaders).to.have.lengthOf(2)
+      expect(loaders[0]).to.match(/ loaders#failing /)
+      expect(loaders[1]).to.match(/ loaders#failtoo /)
     })
   })
 })
