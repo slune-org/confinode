@@ -96,17 +96,20 @@ export default class LoaderManager {
    * Get the loader for the given file name.
    *
    * @param paths - The extra paths where modules are searched.
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param fileName - The (base) name of the file to search.
    * @param extension - The extension of the file if already known.
    * @returns A generator of the most appropriate loader and its name, or undefined if none found.
    */
   public getLoaders(
     paths: string[],
+    syncOnly: boolean,
     fileName: string,
     extension?: string
   ): Generator<[Loader, string], [Loader, string], void> | undefined {
     const loaderGenerator = this.createLoaders(
       paths,
+      syncOnly,
       this.availableTypes
         .filter(availableType =>
           extension
@@ -134,11 +137,13 @@ export default class LoaderManager {
    * Create an iterator over the loaders. Throws if no available iterator found.
    *
    * @param paths - The extra paths where modules are searched.
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param matching - The loaders matching the given file name.
    * @returns The most appropriate loader and its name.
    */
   private *createLoaders(
     paths: string[],
+    syncOnly: boolean,
     matching: Array<[string, LoaderOrDescription]>
   ): Generator<[Loader, string], [Loader, string], void> {
     let lastLoader: [Loader, string] | undefined
@@ -156,7 +161,9 @@ export default class LoaderManager {
         }
         const loadedLoader = this.descriptions[loaderName]
         assertIsLoadedLoader(loadedLoader)
-        nextLoader = [loadedLoader.loader__, loaderName]
+        if (!syncOnly || loadedLoader.loader__.syncLoad) {
+          nextLoader = [loadedLoader.loader__, loaderName]
+        }
       }
       if (nextLoader) {
         if (!lastLoader) {

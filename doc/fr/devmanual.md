@@ -234,12 +234,22 @@ Un chargeur est une classe dont le constructeur prend un paramètre de type inco
 
 L'instance du chargeur:
 
-- doit obligatoirement posséder la méthode `load(fileName)` pour charger le fichier de façon synchrone et renvoyer le résultat ou `undefined` s'il n'y a pas de résultat ;
-- peut éventuellement posséder la méthode `asyncLoad(fileName)` pour charger le fichier de façon asynchrone et renvoyer une promesse contenant le résultat ou `undefined` s'il n'y a pas de résultat.
+- doit obligatoirement posséder la méthode `load(fileName)` pour charger le fichier de façon asynchrone et renvoyer une promesse contentant le résultat ou `undefined` s'il n'y a pas de résultat ;
+- peut éventuellement posséder la méthode `syncLoad(fileName)` pour charger le fichier de façon synchrone et directement renvoyer le résultat ou `undefined` s'il n'y a pas de résultat.
 
 Notez que ces méthodes peuvent renvoyer `undefined` **lorsqu'il n'y a pas de résultat** (cas typique du fichier `package.json` qui ne contient pas d'entrée pour l'application). Elles ne devraient par contre jamais renvoyer `undefined` en cas d'erreur sous peine que l'erreur soit ignorée silencieusement. En cas d'erreur, les méthodes doivent lever une exception.
 
+Pour créer un chargeur uniquement synchrone, vous pouvez étendre la classe abstraite [SyncLoader](../../src/Loader/SyncLoader.ts) qui requiert seulement l'implémentation de la méthode `syncLoad`.
+
 Si vous utilisez _TypeScript_, vos chargeurs devraient implémenter l'interface [Loader](../../src/Loader/Loader.ts).
+
+# Migration depuis la version 1
+
+Si vous avez créé vos propres chargeurs, vous allez devoir effectuer plusieurs modifications :
+
+- certaines classes (tel que `LoaderDescription`) auparavant dans le fichier `Loader.ts` ont été réparties dans leurs propres fichiers ;
+- les anciennes fonctions `load` doivent être renommées `syncLoad` tandis que les anciennes fonctions `asyncLoad` doivent être renommées `load` ;
+- les classes qui ne possèdent pas de méthode asynchrones doivent étendre [SyncLoader](../../src/Loader/SyncLoader.ts).
 
 # FAQ
 

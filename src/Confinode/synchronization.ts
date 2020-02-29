@@ -115,9 +115,7 @@ export async function asyncExecute<R>(stepRun: Generator<Request, R, any>): Prom
           )
           break
         case RequestType.LoadConfigFile:
-          response = request.payload.loader.asyncLoad
-            ? await request.payload.loader.asyncLoad(request.payload.filePath)
-            : request.payload.loader.load(request.payload.filePath)
+          response = await request.payload.loader.load(request.payload.filePath)
           break
         /* istanbul ignore next */
         default:
@@ -175,7 +173,7 @@ export function syncExecute<R>(stepRun: Generator<Request, R, any>): R {
           })()
           break
         case RequestType.LoadConfigFile:
-          response = request.payload.loader.load(request.payload.filePath)
+          response = request.payload.loader.syncLoad!(request.payload.filePath)
           break
         /* istanbul ignore next */
         default:

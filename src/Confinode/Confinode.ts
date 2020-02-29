@@ -182,7 +182,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * @returns A promise resolving to the configuration if found, undefined otherwise.
    */
   private async asyncSearch(searchStart?: string): Promise<ConfinodeResult<T> | undefined> {
-    return asyncExecute(this.searchConfig(searchStart))
+    return asyncExecute(this.searchConfig(false, searchStart))
   }
 
   /**
@@ -192,20 +192,23 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * @returns The configuration if found, undefined otherwise.
    */
   private syncSearch(searchStart?: string): ConfinodeResult<T> | undefined {
-    return syncExecute(this.searchConfig(searchStart))
+    return syncExecute(this.searchConfig(true, searchStart))
   }
 
   /**
    * Search for configuration.
    *
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param searchStart - The place where search will start, current folder by default.
    * @returns A promise resolving to the configuration if found, undefined otherwise.
    */
   private *searchConfig(
+    syncOnly: boolean,
     searchStart: string = process.cwd()
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
     try {
       return yield* this.searchConfigInFolder(
+        syncOnly,
         (yield requestIsFolder(searchStart)) ? searchStart : dirname(searchStart),
         false
       )
@@ -220,11 +223,13 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   /**
    * Search for configuration in given folder. This is a recursive method.
    *
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param folder - The folder to search in.
    * @param ignoreAbsolute - True to ignore absolute file names.
    * @returns A promise resolving to the configuration if found, undefined otherwise.
    */
   private *searchConfigInFolder(
+    syncOnly: boolean,
     folder: string,
     ignoreAbsolute: boolean
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
@@ -241,12 +246,12 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     // Search configuration files
     let result: ConfinodeResult<T> | undefined
     try {
-      result = yield* this.searchConfigUsingDescriptions(absoluteFolder, ignoreAbsolute)
+      result = yield* this.searchConfigUsingDescriptions(syncOnly, absoluteFolder, ignoreAbsolute)
       // Search in parent if not found here
       if (result === undefined && absoluteFolder !== this.parameters.searchStop) {
         const parentFolder = dirname(absoluteFolder)
         if (parentFolder !== absoluteFolder) {
-          result = yield* this.searchConfigInFolder(parentFolder, true)
+          result = yield* this.searchConfigInFolder(syncOnly, parentFolder, true)
         }
       }
     } catch (e) {
@@ -262,19 +267,26 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   /**
    * Search for configuration using options descriptions.
    *
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param folder - The folder in which to search.
    * @param ignoreAbsolute - True to ignore absolute file names.
    * @returns The found elements or undefined.
    */
   private *searchConfigUsingDescriptions(
+    syncOnly: boolean,
     folder: string,
     ignoreAbsolute: boolean
   ): Generator<Request, ConfinodeResult<T> | undefined | undefined, any> {
     for (const fileDescription of this.parameters.files) {
-      const fileAndLoader = yield* this.searchFileAndLoader(folder, fileDescription, ignoreAbsolute)
+      const fileAndLoader = yield* this.searchFileAndLoader(
+        syncOnly,
+        folder,
+        fileDescription,
+        ignoreAbsolute
+      )
       if (fileAndLoader) {
         const [fileName, loader] = fileAndLoader
-        const result = yield* this.loadConfigFile(fileName, loader)
+        const result = yield* this.loadConfigFile(fileName, syncOnly, loader)
         if (result) {
           this.log(Level.Information, 'loadedConfiguration', fileName)
           return result
@@ -287,12 +299,14 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   /**
    * Search a file and its loader matching the given description in the given folder.
    *
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param folder - The folder in which to search.
    * @param description - The file description.
    * @param ignoreAbsolute - True to ignore absolute file names.
    * @returns The found file and loader (and possible loader name), or undefined if none.
    */
   private *searchFileAndLoader(
+    syncOnly: boolean,
     folder: string,
     description: FileDescription,
     ignoreAbsolute: boolean
@@ -315,7 +329,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
             this.folderCache.set(folderName, fileNames)
           }
         }
-        const loaders = this.findLoaderData(folderName, baseName, fileNames)
+        const loaders = this.findLoaderData(syncOnly, folderName, baseName, fileNames)
         if (loaders.length > 0) {
           if (loaders.length > 1) {
             this.log(Level.Warning, 'multipleFiles', searchedPath)
@@ -374,12 +388,14 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   /**
    * Find the loader data for the given files.
    *
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param folder - The folder in which search is done.
    * @param baseName - The base name (start) of the file, including the `.` preceding extension.
    * @param fileNames - The name of the files for which to find loaders.
    * @returns All found loader data as: full path to file, loader generator.
    */
   private findLoaderData(
+    syncOnly: boolean,
     folder: string,
     baseName: string,
     fileNames: string[]
@@ -389,6 +405,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       .map(fileName => {
         const loader = this.loaderManager.getLoaders(
           this.parameters.modulePaths,
+          syncOnly,
           fileName,
           fileName.slice(baseName.length)
         )
@@ -410,7 +427,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * @returns A promise resolving to the configuration if loaded, undefined otherwise.
    */
   private async asyncLoad(name: string): Promise<ConfinodeResult<T> | undefined> {
-    return asyncExecute(this.loadConfig(name))
+    return asyncExecute(this.loadConfig(name, false))
   }
 
   /**
@@ -421,7 +438,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * @returns The configuration if loader, undefined otherwise.
    */
   private syncLoad(name: string): ConfinodeResult<T> | undefined {
-    return syncExecute(this.loadConfig(name))
+    return syncExecute(this.loadConfig(name, true))
   }
 
   /**
@@ -429,12 +446,14 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    *
    * @param name - The name of the configuration file. The name may be an absolute file path, a relative
    * file path, or a module name and an optional file path.
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param folder - The folder to resolve name from, defaults to current directory.
    * @param loadingParameters - The parameters for the current loading process.
    * @returns The configuration if loaded, undefined otherwise.
    */
   private *loadConfig(
     name: string,
+    syncOnly: boolean,
     folder: string = process.cwd(),
     loadingParameters?: LoadingParameters<T>
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
@@ -451,7 +470,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       if (!fileName || !(yield requestFileExits(fileName))) {
         throw new ConfinodeError('fileNotFound', name)
       }
-      return yield* this.loadConfigFile(fileName, loadingParameters ?? defaultLoadingParameters)
+      return yield* this.loadConfigFile(fileName, syncOnly, loadingParameters ?? defaultLoadingParameters)
     } catch (e) {
       if (loadingParameters) {
         // Currently inside loading process, rethrow to caller
@@ -470,6 +489,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Load the configuration file.
    *
    * @param fileName - The name of the file to load.
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param loaderOrLoading - The loader to use (if already found, search file cases) or the loading
    * parameters (loading in progress).
    * @returns The method will return the configuration, or undefined if content is empty (the meaning of
@@ -477,6 +497,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    */
   private *loadConfigFile(
     fileName: string,
+    syncOnly: boolean,
     loaderOrLoading:
       | Generator<[Loader, string | undefined], [Loader, string | undefined], void>
       | LoadingParameters<T>
@@ -502,7 +523,8 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       ...this.parameters.modulePaths,
       ...loadingParameters.alreadyLoaded.map(dirname),
     ].filter(unique)
-    const usedLoader = givenLoader ?? this.loaderManager.getLoaders(modulePaths, basename(absoluteFile))
+    const usedLoader =
+      givenLoader ?? this.loaderManager.getLoaders(modulePaths, syncOnly, basename(absoluteFile))
     if (!usedLoader) {
       throw new ConfinodeError('noLoaderFound', absoluteFile)
     }
@@ -514,7 +536,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       this.log(Level.Trace, 'emptyConfiguration')
       result = loadingParameters.intermediateResult
     } else {
-      result = yield* this.parseConfigFileContent(absoluteFile, loadingParameters, content)
+      result = yield* this.parseConfigFileContent(absoluteFile, syncOnly, loadingParameters, content)
     }
 
     if (this.parameters.cache && !loadingParameters.disableCache) {
@@ -566,12 +588,14 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Parse the file content.
    *
    * @param fileName - The name of file being parsed.
+   * @param syncOnly - Do not use loaders if they cannot load synchronously.
    * @param loadingParameters - The loading parameters.
    * @param content - The content of the file.
    * @returns The parsing result.
    */
   private *parseConfigFileContent(
     fileName: string,
+    syncOnly: boolean,
     loadingParameters: LoadingParameters<T>,
     content: unknown
   ): Generator<Request, ConfinodeResult<T> | undefined, any> {
@@ -579,7 +603,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     const alreadyLoaded = [...loadingParameters.alreadyLoaded, fileName]
     if (typeof content === 'string') {
       // Indirection
-      return yield* this.loadConfig(content, dirname(fileName), {
+      return yield* this.loadConfig(content, syncOnly, dirname(fileName), {
         ...loadingParameters,
         alreadyLoaded,
       })
@@ -592,7 +616,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
         delete content.extends
         let disableCache = loadingParameters.disableCache
         for (const parentConfig of parentConfigs) {
-          result = yield* this.loadConfig(parentConfig, dirname(fileName), {
+          result = yield* this.loadConfig(parentConfig, syncOnly, dirname(fileName), {
             alreadyLoaded,
             intermediateResult: result,
             disableCache,

@@ -12,11 +12,7 @@ interface NodeIni {
 class LoaderImplementation implements Loader {
   public constructor(private readonly nodeIni: NodeIni) {}
 
-  public load(fileName: string) {
-    return this.nodeIni.parseSync(fileName)
-  }
-
-  public async asyncLoad(fileName: string) {
+  public async load(fileName: string): Promise<unknown | undefined> {
     return new Promise((resolve, reject) =>
       this.nodeIni.parse(fileName, (err, data) => {
         if (err) {
@@ -26,6 +22,10 @@ class LoaderImplementation implements Loader {
         }
       })
     )
+  }
+
+  public syncLoad(fileName: string): unknown | undefined {
+    return this.nodeIni.parseSync(fileName)
   }
 }
 

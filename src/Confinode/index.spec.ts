@@ -37,17 +37,17 @@ const complexConfigurationDescription = literal<ComplexConfig>({
 
 // A fake loader
 class FakeLoader implements Loader {
-  public load(fileName: string): unknown | undefined {
-    return {
+  public load(fileName: string): Promise<unknown | undefined> {
+    return Promise.resolve({
       found: true,
       where: fileName,
-    }
+    })
   }
 }
 
 // A failing loader
 class FailingLoader implements Loader {
-  public load(): unknown | undefined {
+  public load(): Promise<unknown | undefined> {
     throw new Error('Expected error from failing loader')
   }
 }
@@ -602,6 +602,22 @@ describe('Confinode', function() {
       expect(loaders).to.have.lengthOf(2)
       expect(loaders[0]).to.match(/ loaders#failing /)
       expect(loaders[1]).to.match(/ loaders#failtoo /)
+    })
+
+    it('should not find asynchronous loaders in synchronous mode', function() {
+      const specialConfinode = new Confinode('loaders', configurationDescription, {
+        logger: catchLogs,
+        customLoaders: {
+          failing: { filetypes: 'ext.special', Loader: FailingLoader },
+          fake: { filetypes: 'special', Loader: FakeLoader },
+        },
+        mode: 'sync',
+      })
+      storedLogs = []
+      const fileName = join(moduleDir, 'special.ext.special')
+      const result = specialConfinode.load(fileName)
+      expect(result).to.be.undefined
+      expect(storedLogs.map(message => message.messageId)).to.include('noLoaderFound')
     })
   })
 })

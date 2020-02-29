@@ -3,20 +3,20 @@
  */
 export default interface Loader {
   /**
-   * Load the given file.
+   * Asynchronously load the given file.
    *
    * @param fileName - The name of the file to load.
    * @returns The content or undefined if content not found.
    */
-  load(fileName: string): unknown | undefined
+  load(fileName: string): Promise<unknown | undefined>
 
   /**
-   * Asynchronously load the given file. May not exist on all loaders.
+   * Synchronously load the given file. May not exist on all loaders.
    *
    * @param fileName - The name of the file to load.
    * @returns The content or undefined if content not found.
    */
-  asyncLoad?(fileName: string): Promise<unknown | undefined>
+  syncLoad?(fileName: string): unknown | undefined
 }
 
 /**

@@ -14,13 +14,13 @@ interface Toml {
 class LoaderImplementation implements Loader {
   public constructor(private readonly toml: Toml) {}
 
-  public load(fileName: string) {
-    return this.toml.parse(readFileSync(fileName, { encoding: 'utf8' }))
-  }
-
-  public async asyncLoad(fileName: string) {
+  public async load(fileName: string): Promise<unknown | undefined> {
     const content = await promisify(readFile)(fileName, { encoding: 'utf8' })
     return this.toml.parse(content)
+  }
+
+  public syncLoad(fileName: string): unknown | undefined {
+    return this.toml.parse(readFileSync(fileName, { encoding: 'utf8' }))
   }
 }
 

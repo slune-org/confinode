@@ -234,12 +234,22 @@ A loader is a class for which the constructor takes a parameter of an unknown ty
 
 The loader instance:
 
-- must have the `load(fileName)` method to synchronously load the file and return the result or `undefined` if no result;
-- can have the `asyncLoad(fileName)` method to asynchronously load the file and return a promise containing the result or `undefined` if no result.
+- must have the `load(fileName)` method to asynchronously load the file and return a promise containing the result or `undefined` if no result;
+- can have the `syncLoad(fileName)` method to synchronously load the file and directly return the result or `undefined` if no result.
 
 Note that these methods might return `undefined` **when there is no result** (typically for the `package.json` file without an entry for the application). On the other hand, they must never return `undefined` in case of an error otherwise the error will be silently ignored. In case of error, the methods should throw an exception.
 
+If you want to create a synchronous only loader, you can extend the [SyncLoader](../../src/Loader/SyncLoader.ts) abstract class, which only require you to implement the `syncLoad` method.
+
 For _TypeScript_ users, loader classes should implement the [Loader](../../src/Loader/Loader.ts) interface.
+
+# Migration from version 1
+
+If you have created your own loaders, you will have to make multiple modifications:
+
+- some classes (like `LoaderDescription`) previously in the `Loader.ts` file have been dispatched in their own files;
+- former `load` functions must be renamed `syncLoad` while former `asyncLoad` must be renamed `load`;
+- classes without an asynchronous method must extend [SyncLoader](../../src/Loader/SyncLoader.ts).
 
 # FAQ
 

@@ -14,13 +14,13 @@ interface Ini {
 class LoaderImplementation implements Loader {
   public constructor(private readonly ini: Ini) {}
 
-  public load(fileName: string) {
-    return this.ini.parse(readFileSync(fileName, { encoding: 'utf8' }))
-  }
-
-  public async asyncLoad(fileName: string) {
+  public async load(fileName: string): Promise<unknown | undefined> {
     const content = await promisify(readFile)(fileName, { encoding: 'utf8' })
     return this.ini.parse(content)
+  }
+
+  public syncLoad(fileName: string): unknown | undefined {
+    return this.ini.parse(readFileSync(fileName, { encoding: 'utf8' }))
   }
 }
 
