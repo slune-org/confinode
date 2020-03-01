@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { SinonSpy } from 'sinon'
 
-import ConfinodeResult from '../../ConfinodeResult'
+import { InternalResult } from '../../ConfinodeResult'
 import { ParserContext } from '../ConfigDescription'
 // eslint-disable-next-line import/no-internal-modules
 import { testNullAndUndefined } from '../ConfigDescription/ConfigDescription.spec'
@@ -14,7 +14,7 @@ const itemDescription = numberItem()
 const description = new DefaultValueDescription(itemDescription, 12)
 
 describe('DefaultValueDescription', function() {
-  let numberSpy: SinonSpy<[unknown, ParserContext<number>], ConfinodeResult<number> | undefined>
+  let numberSpy: SinonSpy<[unknown, ParserContext<number>], InternalResult<number> | undefined>
 
   beforeEach('initialize', function() {
     numberSpy = sinon.spy(itemDescription, 'parse')

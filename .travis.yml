@@ -6,3 +6,7 @@ before_install:
   - npm install -g coveralls
 after_success:
   - coveralls < ./coverage/lcov.info
+branches:
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+(-.*)?$/

@@ -24,7 +24,7 @@
     "test:integration": "pm-exec run build:main && glob-exec --foreach './__tests__/projects/tested/*/package.json' -- 'cd {{file.dir}} && pm-exec test'",
     "build": "pm-exec run build:main && pm-exec run build:extensions",
     "build:extensions": "cross-env TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript ts-node src/tools/managedExtensions.ts doc/extensions.md",
-    "build:main": "ttsc",
+    "build:main": "ttsc && copyfiles -u 1 src/**/*.js lib",
     "clean": "rimraf lib"
   },
   "keywords": [
@@ -60,6 +60,7 @@
     "@typescript-eslint/parser": "2.20.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
+    "copyfiles": "2.2.0",
     "cross-env": "7.0.0",
     "depcheck": "0.9.2",
     "eslint": "6.8.0",

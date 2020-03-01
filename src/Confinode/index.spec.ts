@@ -37,11 +37,18 @@ const complexConfigurationDescription = literal<ComplexConfig>({
 
 // A fake loader
 class FakeLoader implements Loader {
-  public load(fileName: string): unknown | undefined {
-    return {
+  public load(fileName: string): Promise<unknown | undefined> {
+    return Promise.resolve({
       found: true,
       where: fileName,
-    }
+    })
+  }
+}
+
+// A failing loader
+class FailingLoader implements Loader {
+  public load(): Promise<unknown | undefined> {
+    throw new Error('Expected error from failing loader')
   }
 }
 
@@ -92,13 +99,12 @@ describe('Confinode', function() {
   describe('#constructor (mode)', function() {
     it('should create a default object, even with no description', async function() {
       const confinode = new Confinode('titanic')
-      await expect(confinode.search(moduleDir)).to.eventually.deep.equal({
-        configuration: { found: true, where: 'package.json' },
-        fileName: join(moduleDir, 'package.json'),
-        files_: {
-          extends: [],
-          name: join(moduleDir, 'package.json'),
-        },
+      const result = await confinode.search(moduleDir)
+      expect(result?.configuration).to.deep.equal({ found: true, where: 'package.json' })
+      expect(result?.fileName).to.equal(join(moduleDir, 'package.json'))
+      expect(result?.files).to.deep.equal({
+        extends: [],
+        name: join(moduleDir, 'package.json'),
       })
     })
 
@@ -398,7 +404,7 @@ describe('Confinode', function() {
         const confinode = new Confinode('loaders', configurationDescription, {
           logger: ignoreLogs,
         })
-        await expect(confinode.load(join(moduleDir, 'special.special'))).to.eventually.be.undefined
+        await expect(confinode.load(join(moduleDir, 'special.ext.special'))).to.eventually.be.undefined
       })
 
       it('should load special file with custom loader', async function() {
@@ -407,7 +413,7 @@ describe('Confinode', function() {
           customLoaders: { fake: { filetypes: 'special', Loader: FakeLoader } },
         })
         storedLogs = []
-        const fileName = join(moduleDir, 'special.special')
+        const fileName = join(moduleDir, 'special.ext.special')
         const result = await confinode.load(fileName)
         expect(result).not.to.be.undefined
         expect(result?.configuration.where).to.equal(fileName)
@@ -472,8 +478,20 @@ describe('Confinode', function() {
     })
 
     it('should load given absolute configuration file', async function() {
-      await confinode.load(join(moduleDir, '.starwarsrc.js'))
       await expect(confinode.load(join(moduleDir, '.starwarsrc.js'))).not.to.eventually.be.undefined
+    })
+
+    it('should not allow configuration modification', async function() {
+      const result = await confinode.load(join(moduleDir, '.starwarsrc.js'))
+      expect(() => ((result as any).configuration = 'nowhere')).to.throw(TypeError, /immutable/)
+      expect(() => delete (result as any).configuration).to.throw(TypeError, /immutable/)
+      expect(() => Object.defineProperty(result as any, 'fail', {})).to.throw(TypeError, /immutable/)
+      expect(() => (result!.configuration.where = 'nowhere')).to.throw(TypeError, /immutable/)
+      expect(() => delete result!.configuration.where).to.throw(TypeError, /immutable/)
+      expect(() => Object.defineProperty(result!.configuration, 'fail', {})).to.throw(
+        TypeError,
+        /immutable/
+      )
     })
 
     it('should load given relative configuration file', async function() {
@@ -558,6 +576,59 @@ describe('Confinode', function() {
     it('should manage wrongly formatted extends', async function() {
       await expect(badComplex.load(join(moduleDir, 'badextend.json'))).to.eventually.be.undefined
       expect(storedLogs.map(message => message.messageId)).to.include('badExtends')
+    })
+
+    it('should try other loader if first is failing', async function() {
+      const specialConfinode = new Confinode('loaders', configurationDescription, {
+        logger: catchLogs,
+        customLoaders: {
+          failing: { filetypes: 'ext.special', Loader: FailingLoader },
+          fake: { filetypes: 'special', Loader: FakeLoader },
+        },
+      })
+      storedLogs = []
+      const fileName = join(moduleDir, 'special.ext.special')
+      const result = await specialConfinode.load(fileName)
+      expect(result).not.to.be.undefined
+      expect(result?.configuration.where).to.equal(fileName)
+      const loaders = storedLogs.filter(msg => msg.messageId === 'usingLoader')
+      expect(loaders).to.have.lengthOf(2)
+      expect(loaders[0]).to.match(/ loaders#failing /)
+      expect(loaders[1]).to.match(/ loaders#fake /)
+    })
+
+    it('should fail if all loaders are failing', async function() {
+      const specialConfinode = new Confinode('loaders', configurationDescription, {
+        logger: catchLogs,
+        customLoaders: {
+          failing: { filetypes: 'ext.special', Loader: FailingLoader },
+          failtoo: { filetypes: 'special', Loader: FailingLoader },
+        },
+      })
+      storedLogs = []
+      const fileName = join(moduleDir, 'special.ext.special')
+      const result = await specialConfinode.load(fileName)
+      expect(result).to.be.undefined
+      const loaders = storedLogs.filter(msg => msg.messageId === 'usingLoader')
+      expect(loaders).to.have.lengthOf(2)
+      expect(loaders[0]).to.match(/ loaders#failing /)
+      expect(loaders[1]).to.match(/ loaders#failtoo /)
+    })
+
+    it('should not find asynchronous loaders in synchronous mode', function() {
+      const specialConfinode = new Confinode('loaders', configurationDescription, {
+        logger: catchLogs,
+        customLoaders: {
+          failing: { filetypes: 'ext.special', Loader: FailingLoader },
+          fake: { filetypes: 'special', Loader: FakeLoader },
+        },
+        mode: 'sync',
+      })
+      storedLogs = []
+      const fileName = join(moduleDir, 'special.ext.special')
+      const result = specialConfinode.load(fileName)
+      expect(result).to.be.undefined
+      expect(storedLogs.map(message => message.messageId)).to.include('noLoaderFound')
     })
   })
 })

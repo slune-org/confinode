@@ -1,7 +1,8 @@
 import { relative, sep } from 'path'
 
 import { ensureArray } from '../../utils'
-import { LoaderDescription as DefinitionLoaderDescription, LoaderType } from '../Loader'
+import { LoaderType } from '../Loader'
+import DefinitionLoaderDescription from '../LoaderDescription'
 
 /**
  * The babel files regular expression. Taken from the Gulp “interpret” project:

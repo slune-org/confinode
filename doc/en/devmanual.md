@@ -46,6 +46,26 @@ interface Configuration {
 }
 ```
 
+The returned configuration of _confinode_ is immutable. If it does not interfere with the rest of the application, it is advised to indicate this in the type definition:
+
+```typescript
+interface Configuration {
+  readonly server: {
+    readonly url: string
+    readonly port: number
+  }
+  readonly apiId?: string
+  readonly rules: ReadonlyArray<
+    | {
+        readonly name: string
+        readonly active: boolean
+        readonly mode: 'flat' | 'deep' | 'mixed' | 0 | 1
+      }
+    | string
+  >
+}
+```
+
 Once this step completed, you can write matching description. Thanks to its type-checking, _TypeScript_ will check that the description really matches the type definition:
 
 ```typescript
@@ -78,9 +98,9 @@ If you want to code in plain _JavaScript_, you will just have to remove the conf
    server: literal({
 ```
 
-Note that configuration description should always start by a `literal`. Otherwise _confinode_ may have an unexpected behavior.
+Configuration description should always start by a `literal`. Otherwise _confinode_ may have an unexpected behavior.
 
-Note that the main `literal` object in description should not have an `extends` key. The `extends` key is used for inheritance by _confinode_ and removed from data before parsing.
+The main `literal` object in description should not have an `extends` key. The `extends` key is used for inheritance by _confinode_ and removed from data before parsing.
 
 The element descriptions lie in [this file](../../src/ConfigDescription/helpers.ts).
 
@@ -144,7 +164,7 @@ A file description is:
 
 The default loaders list included in _confinode_ wants to be somehow exhaustive. There may anyway be cases where you want to use (very specific) file types which are not (yet) included in _confinode_. In this case, you can [create appropriate loaders](#loader) and specify them in the `customLoaders` options.
 
-This option is an object literal which takes the name you wish to give to the loader as key. In order not to overwrite default loaders, the name you give will be prefixed by the application name followed by the `#` character. As value, the object takes another object literal conforming to the [LoaderDescription](../../src/Loader/Loader.ts) interface, i.e. containing:
+This option is an object literal which takes the name you wish to give to the loader as key. In order not to overwrite default loaders, the name you give will be prefixed by the application name followed by the `#` character. As value, the object takes another object literal conforming to the [LoaderDescription](../../src/Loader/LoaderDescription.ts) interface, i.e. containing:
 
 - a `filetypes` entry with the extension or extensions managed by this loader (**without** the preceding `.` character) as a string or string array;
 - an optional `module` entry containing the name of a module (or sub-module) to require for the loader to work — if the module is not found, the loader will be considered inexistent;
@@ -188,7 +208,7 @@ If the `Confinode` object was parameterized in synchronous mode, this method dir
 
 ## Result
 
-The result of search or load is a `ConfinodeResult` object. This object contains:
+The result of search or load is an object containing:
 
 - the `configuration` property with the files extracted configuration;
 - the `fileName` property, with the same structure as the configuration, but where each final element is actually a string containing the name of the file from which the configuration element was loaded;
@@ -205,7 +225,7 @@ The purpose of _confinode_ is to be an universal configuration loader. If you no
 
 ## Configuration description
 
-A configuration description is an object accepting the `parse(data, context)` method. This method takes the data to parse and the parsing context as parameters and returns a `ConfinodeResult` object or `undefined` if there is no result. Beware to never return `undefined` during the final parse, because this one must return a result to the application. On the other hand, it is possible to return a `ConfinodeResult` containing the `undefined` value if needed.
+A configuration description is an object accepting the `parse(data, context)` method. This method takes the data to parse and the parsing context as parameters and returns a `InternalResult` object or `undefined` if there is no result. Beware to never return `undefined` during the final parse, because this one must return a result to the application. On the other hand, it is possible to return a `InternalResult` containing the `undefined` value if needed.
 
 You can, of course, eventually extend one of the already existing description class in order to modify its behavior. The [LeafItemDescription](../../src/ConfigDescription/ConfigDescription/LeafItemDescription.ts) class is an abstract class designed for basic parsings. It already does some controls and simply leave the inheriting classes process the parse in a `parseValue(value, fileName, keyName)` method which must directly return the parsing result.
 
@@ -213,14 +233,17 @@ The parsing context contains:
 
 - the name of the key `keyName` currently being parsed;
 - the name of the file `fileName` currently being parsed;
-- the possible analysis results (`ConfinodeResult`) of the inherited files in the `parent` property;
+- the possible analysis results (`InternalResult`) of the inherited files in the `parent` property;
 - a `final` boolean indicating if it is the final analysis.
 
-The `ConfinodeResult` object:
+The `InternalResult` object can be represented by two concrete classes:
 
-- may be created using `new ConfinodeResult(true, data, fileName)` where `data` is the direct result of the analysis and `fileName` the name of the file in which this data was found — this file name might be omitted, especially if the result is, for example, a default value;
-- may be created using `new ConfinodeResult(false, children)` where the result is actually dispatched between `children` given as parameter — this parameter must either be an object literal containing `ConfinodeResult` values or an array of `ConfinodeResult`;
-- contains a `children` data referencing the possible children containing the result — access to this data is designed for configuration file merges.
+- the [DirectResult](../../src/ConfinodeResult/DirectResult.ts) class, with the constructor `new DirectResult(data, fileName)` where `data` is the direct result of the analysis and `fileName` the name of the file in which this data was found — this file name might be omitted, especially if the result is, for example, a default value;
+- the [ParentResult](../../src/ConfinodeResult/ParentResult.ts) class, with the constructor `new ParentResult(children)`, has a result actually dispatched between the children given as parameter — this parameter must either be an object literal containing `ConfinodeResult` values or an array of `ConfinodeResult` and can be accessed especially in order to manage configuration file merges.
+
+As for the final result, `InternalResult` objects are immutable.
+
+The content of the `parent` property is the one set by the same description class for another configuration file. It is therefore possible to make assertions on the object type contained in this property. _TypeScript_ developers can use the `assertHasParentResult(context)` method to ensure that the possible parent is of type `ParentResult`.
 
 For _TypeScript_ users, description classes should implement the [ConfigDescription](../../src/ConfigDescription/ConfigDescription/ConfigDescription.ts) interface.
 
@@ -234,12 +257,31 @@ A loader is a class for which the constructor takes a parameter of an unknown ty
 
 The loader instance:
 
-- must have the `load(fileName)` method to synchronously load the file and return the result or `undefined` if no result;
-- can have the `asyncLoad(fileName)` method to asynchronously load the file and return a promise containing the result or `undefined` if no result.
+- must have the `load(fileName)` method to asynchronously load the file and return a promise containing the result or `undefined` if no result;
+- can have the `syncLoad(fileName)` method to synchronously load the file and directly return the result or `undefined` if no result.
 
 Note that these methods might return `undefined` **when there is no result** (typically for the `package.json` file without an entry for the application). On the other hand, they must never return `undefined` in case of an error otherwise the error will be silently ignored. In case of error, the methods should throw an exception.
 
+If you want to create a synchronous only loader, you can extend the [SyncLoader](../../src/Loader/SyncLoader.ts) abstract class, which only require you to implement the `syncLoad` method.
+
 For _TypeScript_ users, loader classes should implement the [Loader](../../src/Loader/Loader.ts) interface.
+
+# Migration from version 1
+
+It was previously not recommended to modify the results of _confinode_, but nothing really prevented you from doing it. This is no longer possible: these objects are now immutable.
+
+If you have created your own configuration description classes, you will have to make several modifications due to the fact that the `ConfinodeResult` class no longer exists by itself:
+
+- the `parse (data, context)` method must now return an `InternalResult` object;
+- the creation of a direct result is now done by `new DirectResult (data, fileName)`;
+- the creation of a distributed result is now done by `new ParentResult (children)`;
+- access to the `children` property in `context.parent` may require, with _TypeScript_, an assertion with `assertHasParentResult (context)`.
+
+If you have created your own loaders, you will have to make multiple modifications:
+
+- some classes (like `LoaderDescription`) previously in the `Loader.ts` file have been dispatched in their own files;
+- former `load` functions must be renamed `syncLoad` while former `asyncLoad` must be renamed `load`;
+- classes without an asynchronous method must extend [SyncLoader](../../src/Loader/SyncLoader.ts).
 
 # FAQ
 

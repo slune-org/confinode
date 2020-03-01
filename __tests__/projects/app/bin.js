@@ -1,22 +1,28 @@
 #!/usr/bin/env node
-var { Confinode, literal, stringItem } = require('confinode')
+const { Confinode, literal, stringItem } = require('confinode')
 
-var description = literal({
+const description = literal({
   status: stringItem(),
 })
-var confinode = new Confinode('my-wonderful-app', description, {
+const confinode = new Confinode('my-wonderful-app', description, {
   cache: false,
   logger: msg => console.log(msg.toString()),
 })
 
-if (process.argv.length !== 3) {
+if (process.argv.length < 3 || process.argv.length > 4) {
   throw new Error('Bad parameter count — configuration and only configuration is expected')
 }
-var file = process.argv[2]
+const file = process.argv[2]
+const options = { noSync: false }
+if (process.argv.length === 4) {
+  if (process.argv[3] === '--noSync') {
+    options.noSync = true
+  }
+}
 
 async function configAsync() {
-  var result = await confinode.load(file)
-  var configuration = !!result ? result.configuration : undefined
+  const result = await confinode.load(file)
+  const configuration = !!result ? result.configuration : undefined
   if (!configuration || configuration.status !== 'Success') {
     console.error(`Error asynchronously loading configuration from ${file}`)
     result
@@ -28,8 +34,8 @@ async function configAsync() {
 }
 
 function configSync() {
-  var result = confinode.load.sync(file)
-  var configuration = !!result ? result.configuration : undefined
+  const result = confinode.load.sync(file)
+  const configuration = !!result ? result.configuration : undefined
   if (!configuration || configuration.status !== 'Success') {
     console.error(`Error synchronously loading configuration from ${file}`)
     result
@@ -43,7 +49,7 @@ function configSync() {
 ;(async function() {
   var result = true
   result &= await configAsync()
-  result &= configSync()
+  options.noSync || (result &= configSync())
   if (!result) {
     console.log(`Could not load ${file}`)
     process.exit(1)

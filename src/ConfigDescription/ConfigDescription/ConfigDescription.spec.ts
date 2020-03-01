@@ -1,7 +1,7 @@
 /* eslint-disable prefer-arrow-callback, no-unused-expressions */
 import { expect } from 'chai'
 
-import ConfinodeResult from '../../ConfinodeResult'
+import { DirectResult, InternalResult, ParentResult } from '../../ConfinodeResult'
 import ConfigDescription from './ConfigDescription'
 
 interface Options {
@@ -15,19 +15,15 @@ export function testNullAndUndefined<T>(
   options: Partial<Options> = {}
 ) {
   const parentNode = (Array.isArray(parentValue)
-    ? new ConfinodeResult(
-        false,
-        parentValue.map(value => new ConfinodeResult(true, value, 'ParenT'))
-      )
+    ? new ParentResult(parentValue.map(value => new DirectResult(value, 'ParenT')))
     : typeof parentValue === 'object' && parentValue !== null
-    ? new ConfinodeResult(
-        false,
+    ? new ParentResult(
         Object.entries(parentValue).reduce((prev, [key, value]) => {
-          prev[key] = new ConfinodeResult(true, value, 'ParenT')
+          prev[key] = new DirectResult(value, 'ParenT')
           return prev
         }, {} as any)
       )
-    : new ConfinodeResult(true, parentValue, 'ParenT')) as ConfinodeResult<T>
+    : new DirectResult(parentValue, 'ParenT')) as InternalResult<T>
   const parentFile = Array.isArray(parentValue)
     ? parentValue.map(_ => 'ParenT')
     : typeof parentValue === 'object' && parentValue !== null

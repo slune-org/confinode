@@ -1,12 +1,15 @@
-import Loader, { LoaderType } from '../Loader'
+import { LoaderType } from '../Loader'
+import SyncLoader from '../SyncLoader'
 
 /**
  * Loader implementation.
  */
-class LoaderImplementation implements Loader {
-  public constructor(_: any, private readonly entry: string) {}
+class LoaderImplementation extends SyncLoader {
+  public constructor(_: any, private readonly entry: string) {
+    super()
+  }
 
-  public load(fileName: string) {
+  public syncLoad(fileName: string): unknown | undefined {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const content = require(fileName)
     if (content && this.entry in content) {

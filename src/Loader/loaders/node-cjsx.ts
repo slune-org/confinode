@@ -1,4 +1,5 @@
-import { LoaderDescription, RequiringLoader } from '../Loader'
+import LoaderDescription from '../LoaderDescription'
+import RequiringLoader from '../RequiringLoader'
 
 /**
  * Loader description.

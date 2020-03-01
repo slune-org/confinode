@@ -1,5 +1,5 @@
 import ConfinodeError from '../../ConfinodeError'
-import ConfinodeResult from '../../ConfinodeResult'
+import { DirectResult, InternalResult } from '../../ConfinodeResult'
 import ConfigDescription from './ConfigDescription'
 import ParserContext from './ParserContext'
 
@@ -22,16 +22,16 @@ export default abstract class LeafItemDescription<T> implements ConfigDescriptio
    * @param context - The parsing context.
    * @returns The matching data node.
    */
-  public parse(data: unknown, context: ParserContext<T>): ConfinodeResult<T> | undefined {
+  public parse(data: unknown, context: ParserContext<T>): InternalResult<T> | undefined {
     const { fileName, keyName, parent, final } = context
     if (data !== undefined && data !== null) {
-      return new ConfinodeResult(true, this.parseValue(data, fileName, keyName), fileName)
+      return new DirectResult(this.parseValue(data, fileName, keyName), fileName)
     } else if (data === undefined && parent) {
       return parent
     } else if (!final) {
       return undefined
     } else if (data === undefined && this.defaultValue !== undefined) {
-      return new ConfinodeResult(true, this.defaultValue)
+      return new DirectResult(this.defaultValue)
     } else {
       throw new ConfinodeError('missingMandatory', keyName)
     }

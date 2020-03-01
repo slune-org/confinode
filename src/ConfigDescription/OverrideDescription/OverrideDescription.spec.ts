@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { SinonSpy } from 'sinon'
 
-import ConfinodeResult from '../../ConfinodeResult'
+import { DirectResult, InternalResult, ParentResult } from '../../ConfinodeResult'
 import ArrayDescription from '../ArrayDescription'
 import { ParserContext } from '../ConfigDescription'
 import { numberItem } from '../helpers'
@@ -13,7 +13,7 @@ const itemDescription = numberItem()
 const description = new OverrideDescription(new ArrayDescription(itemDescription))
 
 describe('OverrideDescription', function() {
-  let numberSpy: SinonSpy<[unknown, ParserContext<number>], ConfinodeResult<number> | undefined>
+  let numberSpy: SinonSpy<[unknown, ParserContext<number>], InternalResult<number> | undefined>
 
   beforeEach('initialize', function() {
     numberSpy = sinon.spy(itemDescription, 'parse')
@@ -27,10 +27,7 @@ describe('OverrideDescription', function() {
     const parseResult = description.parse([5, 8, 13], {
       keyName: 'KeYnAmE',
       fileName: 'FilENamE',
-      parent: new ConfinodeResult(
-        false,
-        Array.of(1, 2, 3).map(data => new ConfinodeResult(true, data, 'ParenT'))
-      ),
+      parent: new ParentResult(Array.of(1, 2, 3).map(data => new DirectResult(data, 'ParenT'))),
       final: false,
     })
     expect(parseResult?.configuration).to.deep.equal([5, 8, 13])
@@ -49,10 +46,7 @@ describe('OverrideDescription', function() {
     const parseResult = description.parse(undefined, {
       keyName: 'KeYnAmE',
       fileName: 'FilENamE',
-      parent: new ConfinodeResult(
-        false,
-        Array.of(1, 2, 3).map(data => new ConfinodeResult(true, data, 'ParenT'))
-      ),
+      parent: new ParentResult(Array.of(1, 2, 3).map(data => new DirectResult(data, 'ParenT'))),
       final: false,
     })
     expect(parseResult?.configuration).to.deep.equal([1, 2, 3])

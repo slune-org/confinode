@@ -1,5 +1,5 @@
 import ConfinodeError from '../../ConfinodeError'
-import ConfinodeResult from '../../ConfinodeResult'
+import { InternalResult } from '../../ConfinodeResult'
 import ConfigDescription, { ParserContext } from '../ConfigDescription'
 
 /**
@@ -19,7 +19,7 @@ export default class ConditionalDescription<I, E> implements ConfigDescription<I
     private readonly elseDescription: ConfigDescription<E>
   ) {}
 
-  public parse(data: unknown, context: ParserContext<I | E>): ConfinodeResult<I | E> | undefined {
+  public parse(data: unknown, context: ParserContext<I | E>): InternalResult<I | E> | undefined {
     const { parent, ...inheritableContext } = context
     if (data !== undefined && data !== null) {
       return this.predicate(data)

@@ -1,7 +1,8 @@
 import { readFile, readFileSync } from 'fs'
 import { promisify } from 'util'
 
-import Loader, { LoaderDescription } from '../Loader'
+import Loader from '../Loader'
+import LoaderDescription from '../LoaderDescription'
 
 interface JSON5 {
   parse(input: string): unknown
@@ -13,13 +14,13 @@ interface JSON5 {
 class LoaderImplementation implements Loader {
   public constructor(private readonly json5: JSON5) {}
 
-  public load(fileName: string) {
-    return this.json5.parse(readFileSync(fileName, { encoding: 'utf8' }))
-  }
-
-  public async asyncLoad(fileName: string) {
+  public async load(fileName: string): Promise<unknown | undefined> {
     const content = await promisify(readFile)(fileName, { encoding: 'utf8' })
     return this.json5.parse(content)
+  }
+
+  public syncLoad(fileName: string): unknown | undefined {
+    return this.json5.parse(readFileSync(fileName, { encoding: 'utf8' }))
   }
 }
 
