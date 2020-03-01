@@ -1,0 +1,20 @@
+{
+  "name": "project4",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "cross-env NODE_OPTIONS='--experimental-modules' pm-exec run test:module",
+    "test:module": "pm-exec run test:module:mjs",
+    "test:module:mjs": "my-wonderful-app ./config.mjs --noSync"
+  },
+  "author": "Slune",
+  "license": "MIT",
+  "dependencies": {
+    "cross-env": "^7.0.0"
+  },
+  "devDependencies": {
+    "my-wonderful-app": "file:../../app",
+    "pm-exec": "1.0.0"
+  }
+}
