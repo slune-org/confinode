@@ -198,6 +198,8 @@ By default, this method is asynchronous and returns a promise. In this case, the
 
 If the `Confinode` object was parameterized in synchronous mode, this method directly returns the result. In this case, there is a `search.async(searchStart)` method doing the same but in asynchronous mode.
 
+If a synchronous search is done, pure asynchronous modules will not be used.
+
 ## Load
 
 Loading a configuration is done using the `load(name)` method. The `name` parameter represents the file to load. The real file place will be searched using the `require.resolve()` function. It can then be a relative or absolute file name, or a reference to a module .
@@ -206,9 +208,11 @@ By default, this method is asynchronous and returns a promise. In this case, the
 
 If the `Confinode` object was parameterized in synchronous mode, this method directly returns the result. In this case, there is a `loan.async(name)` method doing the same but in asynchronous mode.
 
+If a synchronous load is done, pure asynchronous modules will not be used.
+
 ## Result
 
-The result of search or load is an object containing:
+The result of search or load is an immutable object containing:
 
 - the `configuration` property with the files extracted configuration;
 - the `fileName` property, with the same structure as the configuration, but where each final element is actually a string containing the name of the file from which the configuration element was loaded;
@@ -225,9 +229,9 @@ The purpose of _confinode_ is to be an universal configuration loader. If you no
 
 ## Configuration description
 
-A configuration description is an object accepting the `parse(data, context)` method. This method takes the data to parse and the parsing context as parameters and returns a `InternalResult` object or `undefined` if there is no result. Beware to never return `undefined` during the final parse, because this one must return a result to the application. On the other hand, it is possible to return a `InternalResult` containing the `undefined` value if needed.
+A configuration description is an object accepting the `parse(data, context)` method. This method takes the data to parse and the parsing context as parameters and returns an `InternalResult` object or `undefined` if there is no result. Beware to never return `undefined` during the final parse, because this one must return a result to the application. On the other hand, it is possible to return an `InternalResult` containing the `undefined` value if needed.
 
-You can, of course, eventually extend one of the already existing description class in order to modify its behavior. The [LeafItemDescription](../../src/ConfigDescription/ConfigDescription/LeafItemDescription.ts) class is an abstract class designed for basic parsings. It already does some controls and simply leave the inheriting classes process the parse in a `parseValue(value, fileName, keyName)` method which must directly return the parsing result.
+You can, of course, eventually extend one of the already existing description classes in order to modify its behavior. The [LeafItemDescription](../../src/ConfigDescription/ConfigDescription/LeafItemDescription.ts) class is an abstract class designed for basic parsings. It already does some controls and simply leave the inheriting classes process the parse in a `parseValue(value, fileName, keyName)` method which must directly return the parsing result.
 
 The parsing context contains:
 

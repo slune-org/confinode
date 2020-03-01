@@ -198,6 +198,8 @@ Par défaut, cette méthode fonctionne en mode asynchrone et renvoie une promess
 
 Si l'objet `Confinode` a été configuré en mode synchrone, cette méthode renvoie directement le résultat. Dans ce cas, il existe la méthode `search.async(searchStart)` qui aura la même fonctionnalité mais en mode asynchrone.
 
+Si une recherche synchrone est effectuée, les chargeurs purement asynchrones ne seront pas utilisés.
+
 ## Chargement
 
 Le chargement d'une configuration se fait par la méthode `load(name)`. Le paramètre `name` désigne le fichier à charger. L'emplacement réel du fichier sera cherché avec la fonction `require.resolve()`. Il peut donc s'agir d'un nom de fichier relatif ou absolu, ou d'une référence à un module.
@@ -206,9 +208,11 @@ Par défaut, cette méthode fonctionne en mode asynchrone et renvoie une promess
 
 Si l'objet `Confinode` a été configuré en mode synchrone, cette méthode renvoie directement le résultat. Dans ce cas, il existe la méthode `load.async(name)` qui aura la même fonctionnalité mais en mode asynchrone.
 
+Si un chargement synchrone est effectuée, les chargeurs purement asynchrones ne seront pas utilisés.
+
 ## Resultat
 
-Le résultat de la recherche ou du chargement est un objet contenant :
+Le résultat de la recherche ou du chargement est un objet immutable contenant :
 
 - la propriété `configuration` avec la configuration extraite des fichiers ;
 - la propriété `fileName`, qui a la même structure que la configuration, sauf que chaque élément final est en réalité une chaine de caractère qui contient le nom du fichier duquel l'élément de configuration a été chargé ;
