@@ -229,9 +229,9 @@ The purpose of _confinode_ is to be an universal configuration loader. If you no
 
 ## Configuration description
 
-A configuration description is an object accepting the `parse(data, context)` method. This method takes the data to parse and the parsing context as parameters and returns a `InternalResult` object or `undefined` if there is no result. Beware to never return `undefined` during the final parse, because this one must return a result to the application. On the other hand, it is possible to return a `InternalResult` containing the `undefined` value if needed.
+A configuration description is an object accepting the `parse(data, context)` method. This method takes the data to parse and the parsing context as parameters and returns an `InternalResult` object or `undefined` if there is no result. Beware to never return `undefined` during the final parse, because this one must return a result to the application. On the other hand, it is possible to return an `InternalResult` containing the `undefined` value if needed.
 
-You can, of course, eventually extend one of the already existing description class in order to modify its behavior. The [LeafItemDescription](../../src/ConfigDescription/ConfigDescription/LeafItemDescription.ts) class is an abstract class designed for basic parsings. It already does some controls and simply leave the inheriting classes process the parse in a `parseValue(value, fileName, keyName)` method which must directly return the parsing result.
+You can, of course, eventually extend one of the already existing description classes in order to modify its behavior. The [LeafItemDescription](../../src/ConfigDescription/ConfigDescription/LeafItemDescription.ts) class is an abstract class designed for basic parsings. It already does some controls and simply leave the inheriting classes process the parse in a `parseValue(value, fileName, keyName)` method which must directly return the parsing result.
 
 The parsing context contains:
 
