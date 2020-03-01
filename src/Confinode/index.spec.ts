@@ -99,13 +99,12 @@ describe('Confinode', function() {
   describe('#constructor (mode)', function() {
     it('should create a default object, even with no description', async function() {
       const confinode = new Confinode('titanic')
-      await expect(confinode.search(moduleDir)).to.eventually.deep.equal({
-        configuration: { found: true, where: 'package.json' },
-        fileName: join(moduleDir, 'package.json'),
-        files_: {
-          extends: [],
-          name: join(moduleDir, 'package.json'),
-        },
+      const result = await confinode.search(moduleDir)
+      expect(result?.configuration).to.deep.equal({ found: true, where: 'package.json' })
+      expect(result?.fileName).to.equal(join(moduleDir, 'package.json'))
+      expect(result?.files).to.deep.equal({
+        extends: [],
+        name: join(moduleDir, 'package.json'),
       })
     })
 
@@ -479,8 +478,20 @@ describe('Confinode', function() {
     })
 
     it('should load given absolute configuration file', async function() {
-      await confinode.load(join(moduleDir, '.starwarsrc.js'))
       await expect(confinode.load(join(moduleDir, '.starwarsrc.js'))).not.to.eventually.be.undefined
+    })
+
+    it('should not allow configuration modification', async function() {
+      const result = await confinode.load(join(moduleDir, '.starwarsrc.js'))
+      expect(() => ((result as any).configuration = 'nowhere')).to.throw(TypeError, /immutable/)
+      expect(() => delete (result as any).configuration).to.throw(TypeError, /immutable/)
+      expect(() => Object.defineProperty(result as any, 'fail', {})).to.throw(TypeError, /immutable/)
+      expect(() => (result!.configuration.where = 'nowhere')).to.throw(TypeError, /immutable/)
+      expect(() => delete result!.configuration.where).to.throw(TypeError, /immutable/)
+      expect(() => Object.defineProperty(result!.configuration, 'fail', {})).to.throw(
+        TypeError,
+        /immutable/
+      )
     })
 
     it('should load given relative configuration file', async function() {

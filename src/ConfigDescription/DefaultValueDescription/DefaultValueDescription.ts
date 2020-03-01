@@ -1,5 +1,5 @@
 import ConfinodeError from '../../ConfinodeError'
-import ConfinodeResult from '../../ConfinodeResult'
+import { DirectResult, InternalResult } from '../../ConfinodeResult'
 import ConfigDescription, { ParserContext } from '../ConfigDescription'
 
 /**
@@ -17,7 +17,7 @@ export default class DefaultValueDescription<T, D> implements ConfigDescription<
     private readonly defaultValue: D
   ) {}
 
-  public parse(data: unknown, context: ParserContext<T | D>): ConfinodeResult<T | D> | undefined {
+  public parse(data: unknown, context: ParserContext<T | D>): InternalResult<T | D> | undefined {
     const { keyName, parent, final } = context
     if (data !== undefined && data !== null) {
       return this.description.parse(data, context as ParserContext<T>)
@@ -26,7 +26,7 @@ export default class DefaultValueDescription<T, D> implements ConfigDescription<
     } else if (!final) {
       return undefined
     } else if (data === undefined) {
-      return new ConfinodeResult(true, this.defaultValue)
+      return new DirectResult(this.defaultValue)
     } else {
       throw new ConfinodeError('missingMandatory', keyName)
     }

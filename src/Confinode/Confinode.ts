@@ -2,12 +2,12 @@ import { isAbsolute, basename, dirname, join, resolve } from 'path'
 
 import ConfigDescription, { anyItem } from '../ConfigDescription'
 import ConfinodeError from '../ConfinodeError'
+import ConfinodeResult, { ResultFile, buildResult } from '../ConfinodeResult'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
 import Loader, { LoaderManager } from '../Loader'
 import { Level, Message, MessageId, MessageParameters } from '../messages'
 import { Cache, ensureArray, isExisting, pushIfNew, unique } from '../utils'
 import ConfinodeOptions, { ConfinodeParameters, defaultConfig, filesAreFilters } from './ConfinodeOptions'
-import ConfinodeResult, { ResultFile } from '../ConfinodeResult'
 import {
   Request,
   asyncExecute,
@@ -628,13 +628,13 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       }
 
       // Parse file
-      result = this.description.parse(content, {
+      const partialResult = this.description.parse(content, {
         keyName: '',
         fileName,
         parent: result,
         final: loadingParameters.final,
       })
-      result && (result.files = resultFile)
+      partialResult && (result = buildResult(partialResult, resultFile))
     }
     return result
   }

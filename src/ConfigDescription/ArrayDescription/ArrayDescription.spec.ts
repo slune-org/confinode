@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { SinonSpy } from 'sinon'
 
-import ConfinodeResult from '../../ConfinodeResult'
+import { DirectResult, InternalResult, ParentResult } from '../../ConfinodeResult'
 import { ParserContext } from '../ConfigDescription'
 // eslint-disable-next-line import/no-internal-modules
 import { testNullAndUndefined } from '../ConfigDescription/ConfigDescription.spec'
@@ -14,7 +14,7 @@ const itemDescription = numberItem()
 const description = new ArrayDescription(itemDescription)
 
 describe('ArrayDescription', function() {
-  let numberSpy: SinonSpy<[unknown, ParserContext<number>], ConfinodeResult<number> | undefined>
+  let numberSpy: SinonSpy<[unknown, ParserContext<number>], InternalResult<number> | undefined>
 
   beforeEach('initialize', function() {
     numberSpy = sinon.spy(itemDescription, 'parse')
@@ -42,10 +42,7 @@ describe('ArrayDescription', function() {
     const parseResult = description.parse([5, 8, 13], {
       keyName: 'KeYnAmE',
       fileName: 'FilENamE',
-      parent: new ConfinodeResult(
-        false,
-        Array.of(1, 2, 3).map(data => new ConfinodeResult(true, data, 'ParenT'))
-      ),
+      parent: new ParentResult(Array.of(1, 2, 3).map(data => new DirectResult(data, 'ParenT'))),
       final: false,
     })
     expect(parseResult?.configuration).to.deep.equal([1, 2, 3, 5, 8, 13])

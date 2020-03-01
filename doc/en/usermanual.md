@@ -59,7 +59,7 @@ module.exports = '../../config/starwars.json'
 
 It is possible to write a configuration file which inherit from one or more other files. This may be useful if, for example, you have a company global configuration to which you wish to add you specificities or, in the case of theme-oriented configuration files that you want to merge.
 
-In order to do that, you have to add to your configuration object a key named `extends` which contains either directly the name of the file to inherit from or an array of file names to inherit from. If you inherit from multiple files, they are taken in the specified order, the data of the latter can replace the one of the formers.
+In order to do that, you have to add to your configuration object a key named `extends` which contains either directly the name of the file to inherit from or an array of file names to inherit from. If you inherit from multiple files, they are taken in the specified order, the data of the latter can replace the one of the former.
 
 Note that if you give a relative file name in your `extends` entry, the file will be searched relative to the place of the current configuration file.
 

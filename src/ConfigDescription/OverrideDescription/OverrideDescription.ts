@@ -1,4 +1,4 @@
-import ConfinodeResult from '../../ConfinodeResult'
+import { InternalResult } from '../../ConfinodeResult'
 import ConfigDescription, { ParserContext } from '../ConfigDescription'
 
 /**
@@ -12,7 +12,7 @@ export default class OverrideDescription<T> implements ConfigDescription<T> {
    */
   public constructor(protected readonly description: ConfigDescription<T>) {}
 
-  public parse(data: unknown, context: ParserContext<T>): ConfinodeResult<T> | undefined {
+  public parse(data: unknown, context: ParserContext<T>): InternalResult<T> | undefined {
     const { parent, ...inheritableContext } = context
     if (data === undefined && parent) {
       return parent

@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { SinonSpy } from 'sinon'
 
-import ConfinodeResult from '../../ConfinodeResult'
+import { InternalResult } from '../../ConfinodeResult'
 import { ParserContext } from '../ConfigDescription'
 // eslint-disable-next-line import/no-internal-modules
 import { testNullAndUndefined } from '../ConfigDescription/ConfigDescription.spec'
@@ -19,8 +19,8 @@ function predicate(_: unknown): boolean {
 const description = new ConditionalDescription(predicate, ifDescription, elseDescription)
 
 describe('ConditionalDescription', function() {
-  let numberSpy: SinonSpy<[unknown, ParserContext<number>], ConfinodeResult<number> | undefined>
-  let stringSpy: SinonSpy<[unknown, ParserContext<string>], ConfinodeResult<string> | undefined>
+  let numberSpy: SinonSpy<[unknown, ParserContext<number>], InternalResult<number> | undefined>
+  let stringSpy: SinonSpy<[unknown, ParserContext<string>], InternalResult<string> | undefined>
 
   beforeEach('initialize', function() {
     numberSpy = sinon.spy(ifDescription, 'parse')

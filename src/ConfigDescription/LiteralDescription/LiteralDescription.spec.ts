@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { SinonSpy } from 'sinon'
 
-import ConfinodeResult from '../../ConfinodeResult'
+import { DirectResult, InternalResult, ParentResult } from '../../ConfinodeResult'
 import { ParserContext } from '../ConfigDescription'
 // eslint-disable-next-line import/no-internal-modules
 import { testNullAndUndefined } from '../ConfigDescription/ConfigDescription.spec'
@@ -15,8 +15,8 @@ const bDescription = stringItem()
 const description = new LiteralDescription({ a: aDescription, b: bDescription })
 
 describe('LiteralDescription', function() {
-  let numberSpy: SinonSpy<[unknown, ParserContext<number>], ConfinodeResult<number> | undefined>
-  let stringSpy: SinonSpy<[unknown, ParserContext<string>], ConfinodeResult<string> | undefined>
+  let numberSpy: SinonSpy<[unknown, ParserContext<number>], InternalResult<number> | undefined>
+  let stringSpy: SinonSpy<[unknown, ParserContext<string>], InternalResult<string> | undefined>
 
   beforeEach('initialize', function() {
     numberSpy = sinon.spy(aDescription, 'parse')
@@ -56,9 +56,9 @@ describe('LiteralDescription', function() {
       {
         keyName: 'KeYnAmE',
         fileName: 'FilENamE',
-        parent: new ConfinodeResult(false, {
-          a: new ConfinodeResult(true, 144, 'ParenT'),
-          b: new ConfinodeResult(true, 'hello', 'ParenT'),
+        parent: new ParentResult({
+          a: new DirectResult(144, 'ParenT'),
+          b: new DirectResult('hello', 'ParenT'),
         }),
         final: false,
       }

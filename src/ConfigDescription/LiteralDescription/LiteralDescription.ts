@@ -1,7 +1,7 @@
 import ConfinodeError from '../../ConfinodeError'
-import ConfinodeResult from '../../ConfinodeResult'
+import { ParentResult, InternalResult } from '../../ConfinodeResult'
 import { Level, Message } from '../../messages'
-import ConfigDescription, { ParserContext } from '../ConfigDescription'
+import ConfigDescription, { ParserContext, assertHasParentResult } from '../ConfigDescription'
 
 export type ConfigDescriptionLiteral<T extends object> = {
   [P in keyof T]: ConfigDescription<T[P]>
@@ -13,14 +13,14 @@ export type ConfigDescriptionLiteral<T extends object> = {
 export default class LiteralDescription<T extends object> implements ConfigDescription<T> {
   public constructor(private readonly description: ConfigDescriptionLiteral<T>) {}
 
-  public parse(data: unknown, context: ParserContext<T>): ConfinodeResult<T> | undefined {
+  public parse(data: unknown, context: ParserContext<T>): InternalResult<T> | undefined {
     const { fileName, keyName, final } = context
     if ((data !== null && typeof data === 'object') || data === undefined) {
       const keyPrefix = keyName + (keyName.length > 0 ? '.' : '')
       const safeData: any = data ?? {}
-      const parent = (context.parent?.children as { [key: string]: ConfinodeResult<any> }) ?? {}
-      return new ConfinodeResult(
-        false,
+      assertHasParentResult(context)
+      const parent = (context.parent?.children as { [key: string]: InternalResult<any> }) ?? {}
+      return new ParentResult(
         Object.entries(this.description).reduce((result, [key, description]) => {
           const parsed = (description as ConfigDescription<any>).parse(safeData[key], {
             keyName: keyPrefix + key,
@@ -32,7 +32,7 @@ export default class LiteralDescription<T extends object> implements ConfigDescr
             result[key] = parsed
           }
           return result
-        }, {} as { [key: string]: ConfinodeResult<any> })
+        }, {} as { [key: string]: InternalResult<any> })
       )
     } else if (data !== null) {
       throw new ConfinodeError('expected', keyName, fileName, new Message(Level.Error, 'expectedObject'))

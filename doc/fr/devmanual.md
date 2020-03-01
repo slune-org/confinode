@@ -46,6 +46,26 @@ interface Configuration {
 }
 ```
 
+La configuration renvoyée par _confinode_ est immutable. Si cela ne gène pas le reste de l'application, il est conseillé d'indiquer cela dans la définition du type :
+
+```typescript
+interface Configuration {
+  readonly server: {
+    readonly url: string
+    readonly port: number
+  }
+  readonly apiId?: string
+  readonly rules: ReadonlyArray<
+    | {
+        readonly name: string
+        readonly active: boolean
+        readonly mode: 'flat' | 'deep' | 'mixed' | 0 | 1
+      }
+    | string
+  >
+}
+```
+
 Une fois cela fait, on peut écrire la description correspondante. Grâce à son système de typage, _TypeScript_ va s'assurer que la description corresponde bien à la définition du type :
 
 ```typescript
@@ -78,9 +98,9 @@ Si vous souhaitez coder en pure _JavaScript_, il faudra simplement retirer la r�
    server: literal({
 ```
 
-Notez que la description de configuration devrait toujours commencer par un `literal`. Dans le cas contraire, _confinode_ pourrait avoir un comportement inattendu.
+La description de configuration devrait toujours commencer par un `literal`. Dans le cas contraire, _confinode_ pourrait avoir un comportement inattendu.
 
-Notez que l'objet `literal` principal de la description ne devrait pas contenir d'entrée `extends`. L'entrée `extends` est utilisée par _confinode_ pour l'héritage et est supprimée des données avant l'analyse.
+L'objet `literal` principal de la description ne devrait pas contenir d'entrée `extends`. L'entrée `extends` est utilisée par _confinode_ pour l'héritage et est supprimée des données avant l'analyse.
 
 Les différents éléments de description se trouvent dans [ce fichier](../../src/ConfigDescription/helpers.ts).
 
@@ -188,7 +208,7 @@ Si l'objet `Confinode` a été configuré en mode synchrone, cette méthode renv
 
 ## Resultat
 
-Le résultat de la recherche ou du chargement est un objet `ConfinodeResult`. Cet objet contient :
+Le résultat de la recherche ou du chargement est un objet contenant :
 
 - la propriété `configuration` avec la configuration extraite des fichiers ;
 - la propriété `fileName`, qui a la même structure que la configuration, sauf que chaque élément final est en réalité une chaine de caractère qui contient le nom du fichier duquel l'élément de configuration a été chargé ;
@@ -205,7 +225,7 @@ L'objectif de _confinode_ est d'être un chargeur de configuration universel. Si
 
 ## Description de configuration
 
-Une description de configuration est un objet qui accepte la méthode `parse(data, context)`. Cette méthode prend en paramètre la donnée à analyser et le contexte d'analyse et renvoie un objet `ConfinodeResult` ou `undefined` s'il n'y a pas de résultat. Attention à ne jamais renvoyer `undefined` lors de l'analyse finale, car celle-ci doit obligatoirement retourner un résultat à l'application. Il est par contre possible, le cas échéant, de créer un `ConfinodeResult` contenant la valeur `undefined`.
+Une description de configuration est un objet qui accepte la méthode `parse(data, context)`. Cette méthode prend en paramètre la donnée à analyser et le contexte d'analyse et renvoie un objet `InternalResult` ou `undefined` s'il n'y a pas de résultat. Attention à ne jamais renvoyer `undefined` lors de l'analyse finale, car celle-ci doit obligatoirement retourner un résultat à l'application. Il est par contre possible, le cas échéant, de créer un `InternalResult` contenant la valeur `undefined`.
 
 Vous pouvez bien sûr éventuellement étendre l'une des classes de description déjà existante afin d'en modifier le comportement. La classe [LeafItemDescription](../../src/ConfigDescription/ConfigDescription/LeafItemDescription.ts) est une classe abstraite prévue pour les analyses basiques. Elle effectue déjà un certain nombre de contrôles et laisse simplement les classes qui en héritent faire l'analyse par une méthode `parseValue(value, fileName, keyName)` qui doit renvoyer directement le résultat de l'analyse.
 
@@ -213,14 +233,17 @@ Le contexte d'analyse contient :
 
 - le nom de la clé actuellement analysée `keyName` ;
 - le nom du fichier actuellement analysé `fileName` ;
-- les éventuels résultat d'analyse (`ConfinodeResult`) des fichiers hérités, dans la propriété `parent` ;
+- les éventuels résultat d'analyse (`InternalResult`) des fichiers hérités, dans la propriété `parent` ;
 - un boolean `final` indiquant s'il s'agit de l'analyse finale.
 
-L'objet `ConfinodeResult` :
+L'objet `InternalResult` peut être représenté par deux classes concrètes :
 
-- peut être créé par `new ConfinodeResult(true, data, fileName)` où `data` est le résultat direct de l'analyse et `fileName` le nom du fichier dans lequel cette donnée a été trouvée — ce nom de fichier peut être omis, en particulier si le résultat est, par exemple, une valeur par défaut ;
-- peut être créé par `new ConfinodeResult(false, children)` où le résultat est en fait répartit entre les enfants indiqués dans `children` — ce paramètre doit être soit un littéral d'objet contenant des valeurs de type `ConfinodeResult`, soit un tableau de `ConfinodeResult` ;
-- contient une donnée `children` référençant les éventuels enfants contenant le résultat — l'accès à cette donnée est prévu pour les cas de fusion de fichiers de configuration.
+- la classe [DirectResult](../../src/ConfinodeResult/DirectResult.ts), avec le constructeur `new DirectResult(data, fileName)` où `data` est le résultat direct de l'analyse et `fileName` le nom du fichier dans lequel cette donnée a été trouvée — ce nom de fichier peut être omis, en particulier si le résultat est, par exemple, une valeur par défaut ;
+- la classe [ParentResult](../../src/ConfinodeResult/ParentResult.ts), avec le constructeur `new ParentResult(children)`, a un résultat qui est en réalité réparti entre les enfants passés en paramètre — ce paramètre doit être soit un littéral d'objet contenant des valeurs de type `InternalResult`, soit un tableau de `InternalResult` et il est accessible en particulier pour gérer les fusions de fichiers de configuration.
+
+Le contenu de la propriété `parent` est celui qui a été mis par la même classe de description pour un autre fichier de configuration. Il est donc possible de faire des assertions sur le type d'objet contenu dans cette propriété. Les développeurs _TypeScript_ pourront utiliser la méthode `assertHasParentResult(context)` pour s'assurer que l'éventuel parent est de type `ParentResult`.
+
+Tout comme le résultat final, les objets `InternalResult` sont immutables.
 
 Si vous utilisez _TypeScript_, vos classes de description devraient implémenter l'interface [ConfigDescription](../../src/ConfigDescription/ConfigDescription/ConfigDescription.ts).
 
@@ -244,6 +267,15 @@ Pour créer un chargeur uniquement synchrone, vous pouvez étendre la classe abs
 Si vous utilisez _TypeScript_, vos chargeurs devraient implémenter l'interface [Loader](../../src/Loader/Loader.ts).
 
 # Migration depuis la version 1
+
+Il était auparavant déconseillé de modifier les résultats de _confinode_, mais rien ne vous empêchait réellement de le faire. Cela n'est plus possible : ces objets sont maintenant immutables.
+
+Si vous avez créé vos propres classes de description de configuration, vous allez devoir effectuer plusieurs modifications liées au fait que la classe `ConfinodeResult` n'existe plus par elle-même :
+
+- la méthode `parse(data, context)` doit maintenant retourner un objet `InternalResult` ;
+- la création d'un résultat direct se fait maintenant par `new DirectResult(data, fileName)` ;
+- la création d'un résultat réparti se fait maintenant par `new ParentResult(children)` ;
+- l'accès à la propriété `children` dans `context.parent` peut nécessiter, avec _TypeScript_, une assertion avec `assertHasParentResult(context)`.
 
 Si vous avez créé vos propres chargeurs, vous allez devoir effectuer plusieurs modifications :
 

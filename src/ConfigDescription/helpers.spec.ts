@@ -19,7 +19,7 @@ import {
 
 interface Config {
   a: any
-  b: {
+  b: Readonly<{
     c: boolean
     d: 'hello' | 'world' | 12
     e: number
@@ -27,7 +27,7 @@ interface Config {
       g?: string
       h: string[]
     }
-    i: Array<{
+    i: ReadonlyArray<{
       j: number[]
       k?: boolean
       l: string
@@ -36,7 +36,7 @@ interface Config {
       n: string
       o?: string
     }
-  }
+  }>
   p: { q: string } | { r: number }
   s: { [key: string]: string }
 }

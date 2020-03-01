@@ -1,8 +1,8 @@
 import ConfinodeError from '../../ConfinodeError'
-import ConfinodeResult from '../../ConfinodeResult'
+import { InternalResult, ParentResult } from '../../ConfinodeResult'
 import { Level, Message } from '../../messages'
 import { isExisting } from '../../utils'
-import ConfigDescription, { ParserContext } from '../ConfigDescription'
+import ConfigDescription, { ParserContext, assertHasParentResult } from '../ConfigDescription'
 
 /**
  * Description of an array.
@@ -15,7 +15,7 @@ export default class ArrayDescription<T> implements ConfigDescription<T[]> {
    */
   public constructor(protected readonly description: ConfigDescription<T>) {}
 
-  public parse(data: unknown, context: ParserContext<T[]>): ConfinodeResult<T[]> | undefined {
+  public parse(data: unknown, context: ParserContext<T[]>): InternalResult<T[]> | undefined {
     const { fileName, keyName, parent, final } = context
     if (Array.isArray(data)) {
       return this.mergeArray(data, context)
@@ -38,10 +38,10 @@ export default class ArrayDescription<T> implements ConfigDescription<T[]> {
    * @param context - The parsing context.
    * @returns The parsed and merged array.
    */
-  protected mergeArray(data: any[], context: ParserContext<T[]>): ConfinodeResult<T[]> {
-    const parent = (context.parent?.children as ConfinodeResult<T>[]) ?? []
-    return new ConfinodeResult(
-      false,
+  protected mergeArray(data: any[], context: ParserContext<T[]>): InternalResult<T[]> {
+    assertHasParentResult(context)
+    const parent = (context.parent?.children as InternalResult<T>[]) ?? []
+    return new ParentResult(
       parent.concat(
         data
           .map((item, index) =>
