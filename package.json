@@ -52,12 +52,12 @@
     "@types/chai": "4.2.9",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "7.0.1",
-    "@types/node": "13.7.4",
-    "@types/sinon": "7.5.1",
+    "@types/node": "13.7.7",
+    "@types/sinon": "7.5.2",
     "@types/sinon-chai": "3.2.3",
     "@types/yaml": "1.2.0",
-    "@typescript-eslint/eslint-plugin": "2.20.0",
-    "@typescript-eslint/parser": "2.20.0",
+    "@typescript-eslint/eslint-plugin": "2.21.0",
+    "@typescript-eslint/parser": "2.21.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "copyfiles": "2.2.0",
@@ -70,7 +70,7 @@
     "eslint-plugin-node": "11.0.0",
     "eslint-plugin-prettier": "3.1.2",
     "glob-exec": "0.1.1",
-    "mocha": "7.0.1",
+    "mocha": "7.1.0",
     "nyc": "15.0.0",
     "pm-exec": "1.0.0",
     "prettier": "1.19.1",
@@ -81,6 +81,6 @@
     "ts-node": "8.6.2",
     "ts-transform-auto-require": "1.1.0",
     "ttypescript": "1.5.10",
-    "typescript": "3.8.2"
+    "typescript": "3.8.3"
   }
 }

@@ -19,12 +19,12 @@
   "author": "Slune",
   "license": "MIT",
   "dependencies": {
-    "babel-register": "6.26.0",
-    "earlgrey": "0.1.2",
-    "iced-coffee-script": "108.0.14",
-    "json5": "2.1.1",
-    "node-ini": "1.0.0",
-    "wisp": "0.13.0"
+    "babel-register": "^6.26.0",
+    "earlgrey": "^0.1.2",
+    "iced-coffee-script": "^108.0.14",
+    "json5": "^2.1.1",
+    "node-ini": "^1.0.0",
+    "wisp": "^0.13.0"
   },
   "devDependencies": {
     "my-wonderful-app": "file:../../app",
