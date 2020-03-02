@@ -2,6 +2,10 @@
  * All the messages of the library.
  */
 export const messages = {
+  allLoadersFailed: (errors: Array<[string | undefined, string]>) =>
+    `All loaders failed:\n${errors
+      .map(([loader, error]) => ` * ${loader ?? '(unknown)'}: ${error}`)
+      .join('\n')}`,
   badExtends: () => `Extended files parameter is not properly formatted`,
   emptyConfiguration: () => 'Empty configuration',
   expected: (entry: string, file: string, expected: any) =>
@@ -16,7 +20,6 @@ export const messages = {
   internalError: /* istanbul ignore next */ (message: string) => `Internal error: ${message}`,
   loadedFromCache: () => 'Loaded from cache',
   loadedConfiguration: (file: string) => `Loaded configuration from file ${file}`,
-  loadingError: (message: string) => `Error while loading configuration: ${message}`,
   loadingFile: (file: string) => `Loading file ${file}`,
   usingLoader: (loader: string) => `Using ${loader} loader`,
   missingMandatory: (entry: string) => `Configuration error: missing mandatory “${entry}” option`,
