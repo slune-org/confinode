@@ -330,7 +330,7 @@ describe('Confinode', function() {
           expect(log).to.have.lengthOf(1)
           expect(log[0]).to.match(/multiple configuration files found/i)
           expect(error).to.have.lengthOf(1)
-          expect(error[0]).to.match(/error while loading configuration/i)
+          expect(error[0]).to.match(/all loaders failed/i)
         })
       })
 
@@ -341,7 +341,7 @@ describe('Confinode', function() {
           expect(log).to.have.lengthOf(1)
           expect(log[0]).to.match(/multiple configuration files found/i)
           expect(error).to.have.lengthOf(1)
-          expect(error[0]).to.match(/error while loading configuration/i)
+          expect(error[0]).to.match(/all loaders failed/i)
         })
       })
     })
@@ -442,6 +442,11 @@ describe('Confinode', function() {
         .and.include('configuration')
     })
 
+    it('should fail if found configuration is in a bad file', async function() {
+      const confinode = new Confinode('error', anyItem(), { logger: ignoreLogs })
+      await expect(confinode.search(moduleDir)).to.eventually.be.undefined
+    })
+
     it('should search for configuration file based on given folder', async function() {
       const theexorcist = new Confinode('theexorcist', configurationDescription, {
         logger: ignoreLogs,
@@ -522,7 +527,7 @@ describe('Confinode', function() {
 
     it('should display an error if file cannot be loaded', async function() {
       await expect(confinode.load(join(moduleDir, '.badfilerc.yml'))).to.eventually.be.undefined
-      expect(storedLogs.map(message => message.messageId)).to.include('loadingError')
+      expect(storedLogs.map(message => message.messageId)).to.include('allLoadersFailed')
     })
 
     it('should display an error if no loader found for file', async function() {

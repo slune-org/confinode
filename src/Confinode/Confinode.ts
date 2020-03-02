@@ -214,7 +214,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       )
     } catch (e) {
       /* istanbul ignore next */
-      this.log('internal', e)
+      this.log(true, e)
       /* istanbul ignore next */
       return undefined
     }
@@ -255,7 +255,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
         }
       }
     } catch (e) {
-      this.log('loading', e)
+      this.log(true, e)
     }
 
     if (this.parameters.cache) {
@@ -477,7 +477,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
         throw e
       } else {
         // Topmost call, display error
-        this.log('loading', e)
+        this.log(true, e)
       }
     }
 
@@ -561,7 +561,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
     }
     let done = false
     let content: unknown
-    const errors: string[] = []
+    const errors: Array<[string | undefined, string]> = []
     while (!done) {
       const nextLoader = loaders.next()
       const [loader, loaderName] = nextLoader.value
@@ -572,9 +572,9 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
         content = yield requestLoadConfigFile(fileName, loader)
         done = true
       } catch (e) {
-        errors.push(`${loaderName}: ${e.message ? e.message : /* istanbul ignore next */ String(e)}`)
+        errors.push([loaderName, e.message ? e.message : /* istanbul ignore next */ String(e)])
         if (nextLoader.done) {
-          throw new Error(errors.join('\n'))
+          throw new ConfinodeError('allLoadersFailed', errors)
         }
       }
     }
@@ -642,10 +642,10 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
   /**
    * Log the exception as an error of given type.
    *
-   * @param errorType - The type of the error.
+   * @param isException - Indicate that this is an exception.
    * @param exception - The exception to log.
    */
-  private log(errorType: 'loading' | 'internal', exception: any): void
+  private log(isException: true, exception: any): void
 
   /**
    * Log a message.
@@ -660,28 +660,24 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
    * Implementation.
    */
   private log<M extends MessageId>(
-    levelOrErrorType: any,
+    levelOrIsException: any,
     messageIdOrException?: any,
     ...parameters: MessageParameters[M]
   ): void {
     let message: Message<any>
-    if (typeof levelOrErrorType === 'string') {
+    if (typeof levelOrIsException === 'boolean') {
+      /* istanbul ignore else */
       if (messageIdOrException instanceof ConfinodeError) {
         message = messageIdOrException.internalMessage
       } else {
         const errorMessage =
           messageIdOrException instanceof Error
             ? messageIdOrException.message
-            : /* istanbul ignore next */ messageIdOrException.toString()
-        /* istanbul ignore else */
-        if (levelOrErrorType === 'loading') {
-          message = new Message(Level.Error, 'loadingError', errorMessage)
-        } else {
-          message = new Message(Level.Error, 'internalError', errorMessage)
-        }
+            : String(messageIdOrException)
+        message = new Message(Level.Error, 'internalError', errorMessage)
       }
     } else {
-      message = new Message(levelOrErrorType as Level, messageIdOrException as M, ...parameters)
+      message = new Message(levelOrIsException as Level, messageIdOrException as M, ...parameters)
     }
     this.parameters.logger(message)
   }
