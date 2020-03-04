@@ -1,2 +1,10 @@
-export { default, LeafItemDescription, ParserContext, assertHasParentResult } from './ConfigDescription'
+export {
+  default,
+  ConfigDescriptionParameter,
+  DynamicConfigDescription,
+  LeafItemDescription,
+  ParserContext,
+  asDescription,
+  assertHasParentResult,
+} from './ConfigDescription'
 export * from './helpers'

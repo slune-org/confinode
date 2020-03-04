@@ -104,6 +104,38 @@ The main `literal` object in description should not have an `extends` key. The `
 
 The element descriptions lie in [this file](../../src/ConfigDescription/helpers.ts).
 
+## Dynamic description
+
+It sometimes happens that some configuration parts are recursive. For example:
+
+```typescript
+Cycle interface {
+  value: string
+  children: Cycle[]
+}
+```
+
+It is not possible in this case to statically describe the configuration, because that would need to use a variable which is not yet defined. This is why all the _confinode_ objects accepting a description can also take a dynamic description, i.e. a method taking no parameter and returning the description. In _TypeScript_, you can use the [DynamicConfigDescription](../../src/ConfigDescription/ConfigDescription/ConfigDescription.ts) type.
+
+This allows you to define the description as:
+
+```typescript
+const description: DynamicConfigDescription<Cycle> = () =>
+  literal({
+    value: stringItem(),
+    children: defaultValue(array(description), []),
+  })
+```
+
+In pure _JavaScript_, do not specify the typing:
+
+```diff
+-const description: DynamicConfigDescription<Cycle> = () =>
+   literal({
++const description = () =>
+   literal({
+```
+
 # Constructor
 
 The `Confinode` constructor takes 3 parameters:

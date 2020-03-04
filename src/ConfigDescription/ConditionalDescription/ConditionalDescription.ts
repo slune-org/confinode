@@ -1,6 +1,10 @@
 import ConfinodeError from '../../ConfinodeError'
 import { InternalResult } from '../../ConfinodeResult'
-import ConfigDescription, { ParserContext } from '../ConfigDescription'
+import ConfigDescription, {
+  ConfigDescriptionParameter,
+  ParserContext,
+  asDescription,
+} from '../ConfigDescription'
 
 /**
  * Description of a conditional configuration.
@@ -15,16 +19,16 @@ export default class ConditionalDescription<I, E> implements ConfigDescription<I
    */
   public constructor(
     private readonly predicate: (value: unknown) => boolean,
-    private readonly ifDescription: ConfigDescription<I>,
-    private readonly elseDescription: ConfigDescription<E>
+    private readonly ifDescription: ConfigDescriptionParameter<I>,
+    private readonly elseDescription: ConfigDescriptionParameter<E>
   ) {}
 
   public parse(data: unknown, context: ParserContext<I | E>): InternalResult<I | E> | undefined {
     const { parent, ...inheritableContext } = context
     if (data !== undefined && data !== null) {
       return this.predicate(data)
-        ? this.ifDescription.parse(data, inheritableContext)
-        : this.elseDescription.parse(data, inheritableContext)
+        ? asDescription(this.ifDescription).parse(data, inheritableContext)
+        : asDescription(this.elseDescription).parse(data, inheritableContext)
     } else if (data === undefined && parent) {
       return parent
     } else if (!context.final) {

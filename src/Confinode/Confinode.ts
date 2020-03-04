@@ -1,6 +1,6 @@
 import { isAbsolute, basename, dirname, join, resolve } from 'path'
 
-import ConfigDescription, { anyItem } from '../ConfigDescription'
+import { ConfigDescriptionParameter, anyItem, asDescription } from '../ConfigDescription'
 import ConfinodeError from '../ConfinodeError'
 import ConfinodeResult, { ResultFile, buildResult } from '../ConfinodeResult'
 import FileDescription, { defaultFiles, isFileBasename } from '../FileDescription'
@@ -110,7 +110,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
 
   public constructor(
     public readonly name: string,
-    private readonly description: ConfigDescription<T> = anyItem(),
+    private readonly description: ConfigDescriptionParameter<T> = anyItem(),
     options?: ConfinodeOptions<M>
   ) {
     // Load default option (prevent null or undefined provided options to remove default ones)
@@ -628,7 +628,7 @@ export default class Confinode<T extends object = any, M extends 'async' | 'sync
       }
 
       // Parse file
-      const partialResult = this.description.parse(content, {
+      const partialResult = asDescription(this.description).parse(content, {
         keyName: '',
         fileName,
         parent: result,
