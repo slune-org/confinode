@@ -109,7 +109,7 @@ The element descriptions lie in [this file](../../src/ConfigDescription/helpers.
 It sometimes happens that some configuration parts are recursive. For example:
 
 ```typescript
-Cycle interface {
+interface Cycle {
   value: string
   children: Cycle[]
 }
