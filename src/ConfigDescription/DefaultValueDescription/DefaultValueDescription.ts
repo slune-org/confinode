@@ -1,6 +1,10 @@
 import ConfinodeError from '../../ConfinodeError'
 import { DirectResult, InternalResult } from '../../ConfinodeResult'
-import ConfigDescription, { ParserContext } from '../ConfigDescription'
+import ConfigDescription, {
+  ConfigDescriptionParameter,
+  ParserContext,
+  asDescription,
+} from '../ConfigDescription'
 
 /**
  * Description of a default value.
@@ -13,14 +17,14 @@ export default class DefaultValueDescription<T, D> implements ConfigDescription<
    * @param defaultValue - The value to use if description does not exist.
    */
   public constructor(
-    private readonly description: ConfigDescription<T>,
+    private readonly description: ConfigDescriptionParameter<T>,
     private readonly defaultValue: D
   ) {}
 
   public parse(data: unknown, context: ParserContext<T | D>): InternalResult<T | D> | undefined {
     const { keyName, parent, final } = context
     if (data !== undefined && data !== null) {
-      return this.description.parse(data, context as ParserContext<T>)
+      return asDescription(this.description).parse(data, context as ParserContext<T>)
     } else if (data === undefined && parent) {
       return parent
     } else if (!final) {

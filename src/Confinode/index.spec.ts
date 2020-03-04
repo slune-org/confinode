@@ -2,7 +2,15 @@
 import { expect } from 'chai'
 import { join, resolve } from 'path'
 
-import { booleanItem, literal, stringItem, anyItem } from '../ConfigDescription'
+import {
+  DynamicConfigDescription,
+  array,
+  booleanItem,
+  defaultValue,
+  literal,
+  stringItem,
+  anyItem,
+} from '../ConfigDescription'
 import { Message } from '../messages'
 import FileDescription, { noPackageJson } from '../FileDescription'
 import Loader from '../Loader'
@@ -34,6 +42,18 @@ const complexConfigurationDescription = literal<ComplexConfig>({
   d: stringItem(),
   e: stringItem(),
 })
+
+// Recursive configuration
+interface RecursiveConfig {
+  value: string
+  children: RecursiveConfig[]
+}
+const recursiveConfigurationDescription: DynamicConfigDescription<RecursiveConfig> = () => {
+  return literal({
+    value: stringItem(),
+    children: defaultValue(array(recursiveConfigurationDescription), []),
+  })
+}
 
 // A fake loader
 class FakeLoader implements Loader {
@@ -477,6 +497,9 @@ describe('Confinode', function() {
     const badComplex = new Confinode('recursive', complexConfigurationDescription, {
       logger: catchLogs,
     })
+    const recursiveConfig = new Confinode('dynamic', recursiveConfigurationDescription, {
+      logger: ignoreLogs,
+    })
 
     beforeEach('Clear stored logs', function() {
       storedLogs = []
@@ -581,6 +604,29 @@ describe('Confinode', function() {
     it('should manage wrongly formatted extends', async function() {
       await expect(badComplex.load(join(moduleDir, 'badextend.json'))).to.eventually.be.undefined
       expect(storedLogs.map(message => message.messageId)).to.include('badExtends')
+    })
+
+    it('should manage recursive definition', async function() {
+      const result = await recursiveConfig.load(join(moduleDir, 'dynamic.yaml'))
+      expect(result).not.to.be.undefined
+      expect(result?.configuration).to.deep.equal({
+        value: 'main',
+        children: [
+          {
+            value: 'sub',
+            children: [
+              {
+                value: 'third',
+                children: [],
+              },
+            ],
+          },
+          {
+            value: 'sibling',
+            children: [],
+          },
+        ],
+      })
     })
 
     it('should try other loader if first is failing', async function() {

@@ -1,6 +1,8 @@
 export { default as Confinode, ConfinodeOptions } from './Confinode'
 export {
   default as ConfigDescription,
+  ConfigDescriptionParameter,
+  DynamicConfigDescription,
   LeafItemDescription,
   ParserContext,
   anyItem,

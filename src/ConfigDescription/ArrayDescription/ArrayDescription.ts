@@ -2,7 +2,12 @@ import ConfinodeError from '../../ConfinodeError'
 import { InternalResult, ParentResult } from '../../ConfinodeResult'
 import { Level, Message } from '../../messages'
 import { isExisting } from '../../utils'
-import ConfigDescription, { ParserContext, assertHasParentResult } from '../ConfigDescription'
+import ConfigDescription, {
+  ConfigDescriptionParameter,
+  ParserContext,
+  assertHasParentResult,
+  asDescription,
+} from '../ConfigDescription'
 
 /**
  * Description of an array.
@@ -13,7 +18,7 @@ export default class ArrayDescription<T> implements ConfigDescription<T[]> {
    *
    * @param description - The description to replicate for each array item.
    */
-  public constructor(protected readonly description: ConfigDescription<T>) {}
+  public constructor(protected readonly description: ConfigDescriptionParameter<T>) {}
 
   public parse(data: unknown, context: ParserContext<T[]>): InternalResult<T[]> | undefined {
     const { fileName, keyName, parent, final } = context
@@ -45,7 +50,7 @@ export default class ArrayDescription<T> implements ConfigDescription<T[]> {
       parent.concat(
         data
           .map((item, index) =>
-            this.description.parse(item, {
+            asDescription(this.description).parse(item, {
               ...context,
               keyName: `${context.keyName}[${index}]`,
               parent: undefined,

@@ -1,13 +1,23 @@
 import ConfinodeError from '../../ConfinodeError'
 import { ParentResult, InternalResult } from '../../ConfinodeResult'
 import { Level, Message } from '../../messages'
-import ConfigDescription, { ParserContext, assertHasParentResult } from '../ConfigDescription'
+import ConfigDescription, {
+  ConfigDescriptionParameter,
+  ParserContext,
+  assertHasParentResult,
+  asDescription,
+} from '../ConfigDescription'
 
 /**
  * Description of a dictionary.
  */
 export default class DictionaryDescription<T> implements ConfigDescription<{ [key: string]: T }> {
-  public constructor(private readonly description: ConfigDescription<T>) {}
+  /**
+   * Create the dictionary configuration description.
+   *
+   * @param description - The description of a dictionary element.
+   */
+  public constructor(private readonly description: ConfigDescriptionParameter<T>) {}
 
   public parse(
     data: unknown,
@@ -22,7 +32,7 @@ export default class DictionaryDescription<T> implements ConfigDescription<{ [ke
       return new ParentResult({
         ...parent,
         ...Object.entries(safeData).reduce((result, [key, value]) => {
-          const parsed = this.description.parse(value, {
+          const parsed = asDescription(this.description).parse(value, {
             keyName: keyPrefix + key,
             fileName,
             parent: parent[key],

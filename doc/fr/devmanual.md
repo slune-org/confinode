@@ -104,6 +104,38 @@ L'objet `literal` principal de la description ne devrait pas contenir d'entrée 
 
 Les différents éléments de description se trouvent dans [ce fichier](../../src/ConfigDescription/helpers.ts).
 
+## Description dynamique
+
+Il arrive parfois que certaines parties de configuration soient récursives. Par exemple :
+
+```typescript
+interface Cycle {
+  value: string
+  children: Cycle[]
+}
+```
+
+Il n'est pas possible dans ce cas de décrire la configuration de façon statique, car cela obligerait à utiliser une variable qui n'est pas encore définie. C'est pourquoi tous les objets de _confinode_ acceptant une description peuvent aussi prendre une description dynamique, c'est-à-dire une méthode ne prenant aucun paramètre et renvoyant la description. En _TypeScript_, vous pouvez utiliser le type [DynamicConfigDescription](../../src/ConfigDescription/ConfigDescription/ConfigDescription.ts).
+
+Cela vous permet de définir la description ainsi :
+
+```typescript
+const description: DynamicConfigDescription<Cycle> = () =>
+  literal({
+    value: stringItem(),
+    children: defaultValue(array(description), []),
+  })
+```
+
+En pure _JavaScript_, n'indiquez pas le typage :
+
+```diff
+-const description: DynamicConfigDescription<Cycle> = () =>
+   literal({
++const description = () =>
+   literal({
+```
+
 # Constructeur
 
 Le constructeur de `Confinode` prend 3 paramètres :

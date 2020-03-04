@@ -1,4 +1,4 @@
-import ConfigDescription from './ConfigDescription'
+import ConfigDescription, { ConfigDescriptionParameter } from './ConfigDescription'
 import AnyDescription from './AnyDescription'
 import ArrayDescription from './ArrayDescription'
 import BooleanDescription from './BooleanDescription'
@@ -28,7 +28,7 @@ export function anyItem(): ConfigDescription<any> {
  * @param description - The description to repeat for each array element.
  * @returns The configuration description.
  */
-export function array<T>(description: ConfigDescription<T>): ConfigDescription<T[]> {
+export function array<T>(description: ConfigDescriptionParameter<T>): ConfigDescription<T[]> {
   return new ArrayDescription(description)
 }
 
@@ -70,8 +70,8 @@ export function choiceItem<T extends string | number>(
  */
 export function conditional<I, E>(
   predicate: (value: unknown) => boolean,
-  ifDescription: ConfigDescription<I>,
-  elseDescription: ConfigDescription<E>
+  ifDescription: ConfigDescriptionParameter<I>,
+  elseDescription: ConfigDescriptionParameter<E>
 ): ConfigDescription<I | E> {
   return new ConditionalDescription(predicate, ifDescription, elseDescription)
 }
@@ -84,7 +84,10 @@ export function conditional<I, E>(
  * @param value - The default value for if no value specified.
  * @returns The configuration description.
  */
-export function defaultValue<T>(description: ConfigDescription<T>, value: T): ConfigDescription<T> {
+export function defaultValue<T>(
+  description: ConfigDescriptionParameter<T>,
+  value: T
+): ConfigDescription<T> {
   return new DefaultValueDescription(description, value)
 }
 
@@ -94,7 +97,9 @@ export function defaultValue<T>(description: ConfigDescription<T>, value: T): Co
  * @param description - The description of a dictionary value.
  * @returns The configuration description.
  */
-export function dictionary<T>(description: ConfigDescription<T>): ConfigDescription<{ [key: string]: T }> {
+export function dictionary<T>(
+  description: ConfigDescriptionParameter<T>
+): ConfigDescription<{ [key: string]: T }> {
   return new DictionaryDescription(description)
 }
 
@@ -126,7 +131,7 @@ export function numberItem(defaultValue?: number): ConfigDescription<number> {
  * @param description - The description to turn optional.
  * @returns The configuration description.
  */
-export function optional<T>(description: ConfigDescription<T>): ConfigDescription<T | undefined> {
+export function optional<T>(description: ConfigDescriptionParameter<T>): ConfigDescription<T | undefined> {
   return new OptionalDescription(description)
 }
 
@@ -137,7 +142,7 @@ export function optional<T>(description: ConfigDescription<T>): ConfigDescriptio
  * @param description - The description of the item to override.
  * @returns The configuration description.
  */
-export function override<T>(description: ConfigDescription<T>): ConfigDescription<T> {
+export function override<T>(description: ConfigDescriptionParameter<T>): ConfigDescription<T> {
   return new OverrideDescription(description)
 }
 
@@ -148,7 +153,7 @@ export function override<T>(description: ConfigDescription<T>): ConfigDescriptio
  * @param description - The description of the expected value.
  * @returns The configuration description.
  */
-export function singleOrArray<T>(description: ConfigDescription<T>): ConfigDescription<T[]> {
+export function singleOrArray<T>(description: ConfigDescriptionParameter<T>): ConfigDescription<T[]> {
   return new SingleOrArrayDescription(description)
 }
 

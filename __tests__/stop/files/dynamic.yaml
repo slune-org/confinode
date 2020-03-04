@@ -1,0 +1,6 @@
+value: main
+children:
+  - value: sub
+    children:
+      - value: third
+  - value: sibling
