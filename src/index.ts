@@ -20,6 +20,13 @@ export {
   singleOrArray,
   stringItem,
 } from './ConfigDescription'
+export {
+  default as ConfinodeResult,
+  DirectResult,
+  InternalResult,
+  ParentResult,
+  ResultFile,
+} from './ConfinodeResult'
 export { default as FileDescription, noPackageJson } from './FileDescription'
 export { default as Loader, LoaderDescription, SyncLoader } from './Loader'
 export { Level, Message } from './messages'
